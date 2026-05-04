@@ -1,0 +1,97 @@
+{
+  "hash": "2ac132a43537db5d37675f6ea0e8c7f66b3846910b944c53815555903d424f5c",
+  "timestamp": "2026-05-03T20:43:16Z",
+  "items": [
+    {
+      "id": "af65433190e94163f24235df26ab06696a0bf7871ea56b3cd19a43e94c525eac",
+      "section": "General",
+      "title": null,
+      "text": "Variety skins",
+      "category": "skins"
+    },
+    {
+      "id": "8fedc079814645e52a61ba4f479b15167dc77cc7dd44d6b9102f18f8b856496d",
+      "section": "General",
+      "title": null,
+      "text": "Cycle: The period between two major version releases is the current cycle.",
+      "category": "systems"
+    },
+    {
+      "id": "ff628c7a87dd3fa47557c155c3eb81b5a471058e231810d0fdbbb60b8e7263f4",
+      "section": "General",
+      "title": null,
+      "text": "Iceboxed: When content is iceboxed, it is removed from the current PBE cycle and its development is postponed.",
+      "category": "systems"
+    },
+    {
+      "id": "56a932e941051c4cfb8f3e7ca9e179fd561c821cab2b9d29a730b50b2aa9020c",
+      "section": "General",
+      "title": null,
+      "text": "Rain Shepherd Ivern ( 1350)",
+      "category": "systems"
+    },
+    {
+      "id": "b843d4a29453b4ed20898421f4e16f7d462f8f3a0c76bbbefcd3fe50c0886216",
+      "section": "General",
+      "title": null,
+      "text": "PROJECT: Quinn ( 1350)",
+      "category": "systems"
+    },
+    {
+      "id": "d3f44525017232611397b7887594e8a00ce4a7bcb2e3ae48a28c23b5a2c53d71",
+      "section": "General",
+      "title": null,
+      "text": "Rain Shepherd Ivern",
+      "category": "systems"
+    },
+    {
+      "id": "565d4fb44564533b58c796faab9020b3667bfae0518f32b1fce99fa8947026c0",
+      "section": "General",
+      "title": null,
+      "text": "PROJECT: Quinn",
+      "category": "systems"
+    },
+    {
+      "id": "9757246566b1b47a1dced197ef664bb43c73acbc7aec9d4868833f1611016878",
+      "section": "[",
+      "title": "Blue Essence Emporium",
+      "text": "Blue Essence Emporium: Returning May 13th, 2026.",
+      "category": "systems"
+    },
+    {
+      "id": "b7d84959c204c4b2f59724398c9bff960abf54988c914e7b26357ccbafcf17e1",
+      "section": "[",
+      "title": "Skins",
+      "text": "Skins: Prestige skins for LeBlanc and Veigar.",
+      "category": "skins"
+    },
+    {
+      "id": "ba1a5b3ee5fee8d668ac5690fd06f14365d77daa5534923bde3815f642b6cacc",
+      "section": "[",
+      "title": "Skins",
+      "text": "Skins: Day Job skins featuring Breadsticks Irelia, Spaghetti alla Vel'Koz, and Pizza Sion.",
+      "category": "skins"
+    },
+    {
+      "id": "d6e83055a3ad3f3023becee6a1a040bf366774e174851d63c2b33037cfe7582d",
+      "section": "[",
+      "title": "Skins",
+      "text": "Skins: The Eternal Aspects skins for Leona and Diana.",
+      "category": "skins"
+    },
+    {
+      "id": "f57dfc420f46f4b5a38762be0a454d207a5c85533d6fc2abb8b8ed88f501e9e1",
+      "section": "[",
+      "title": "New Champions",
+      "text": "New Champions: The following teasers may or may not be intended to be taken literally, and may provide hints to the champion rather than their development.",
+      "category": "newChampions"
+    },
+    {
+      "id": "1f4ff289c57c95845c30bf1d77d9859b07e0ed3da3367f0425f036b336933b99",
+      "section": "[",
+      "title": "New Champions",
+      "text": "New Champions: An AP assassin mid laner named Locke aimed to release in Season 2, Act 2.",
+      "category": "newChampions"
+    }
+  ]
+}

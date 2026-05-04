@@ -1,0 +1,1143 @@
+VPBE (26.10)
+			
+				 
+
+			
+			
+				 
+
+			Latest PBE PatchApril 28, 2026Highlights
+
+* Variety skins
+
+Glossary
+
+* Cycle: The period between two major version releases is the current cycle.
+
+* Iceboxed: When content is iceboxed, it is removed from the current PBE cycle and its development is postponed.
+Related links
+/dev: Apex Tier Ranked Reset
+
+/dev: WASD's Ranked Release
+
+Patch chronology&#8592;&#160;PreviousV26.09Next&#160;&#8594;Unreleased ContentContents
+
+* 1 New Cosmetics
+
+* 2 League of Legends VPBE
+
+* 3 Upcoming
+
+* 3.1 Game
+
+* 3.2 Cosmetics
+
+* 3.3 Champion Roadmap
+
+* 4 References
+
+This page documents all confirmed changes and additions to cosmetics & gameplay found on the PBE server for League of Legends. Information added here is sourced from the game directly or must otherwise reference official Riot accounts.
+
+Documented changes may or may not be final—cancelled content from the current PBE cycle should be stricken-through, or moved to the Upcoming section if confirmed/likely to return at a later patch. PBE content is finalized on the Friday before a new Live patch releases, and no later than the Monday at 12 PM PST before a new Live patch releases on rare occasions. At that point, the patch and its content has been locked and will be pushed to all Live regions on the day of the new patch cycle based on Riot's patch schedule. A new PBE cycle usually starts on the Tuesday at exactly 12 PM PST before a new Live patch releases.
+
+The following content should not be added to main articles across the Wiki.
+New Cosmetics[edit | edit source]
+The following Champion skins have been added:
+
+*  Rain Shepherd Ivern ( 1350)
+
+*  PROJECT: Quinn ( 1350)
+
+The following Chroma sets have been added:
+
+*  Rain Shepherd Ivern
+ Chromas: Catseye,&#32; Obsidian,&#32; Pearl,&#32; Rose Quartz,&#32; Ruby,&#32; Sapphire,&#32; Tanzanite,&#32; Turquoise
+
+*  PROJECT: Quinn
+ Chromas: Catseye,&#32; Obsidian,&#32; Pearl,&#32; Rose Quartz,&#32; Ruby,&#32; Sapphire,&#32; Tanzanite,&#32; Turquoise
+
+The following Summoner icons have been added:
+
+The following Ward skins have been added:
+
+The following Emotes have been added:
+
+League of Legends VPBE[edit | edit source]
+Upcoming[edit | edit source]
+Game[edit | edit source]
+
+;League Next
+
+* Major update to League of Legends in 2027.
+
+* Integration of the League of Legends client to the in-game engine.
+
+* Major upgrades to the League of Legends gameplay engine.
+
+* Full visual overhaul of  Summoner's Rift.
+
+* Gameplay updates to runes and other pre-game systems.
+
+* Improved new player experience.
+
+;Honor
+
+* More rewards added to the Honor system.
+
+;Matchmaking
+
+* New matchmaking algorithm, TrueSkill2.
+
+* It has been tested in Normal game queues, since February in the NA shard and since July in the KR shard.
+
+* The test has been deemed successful and the algorithm is likely being deployed later in more shards and queues.
+
+* After their first 10 required Normal games, smurfs are placed close to their appropriate skill level in about 5 Ranked games. This is 4 times faster than the previous system.
+
+;Orange Essence
+
+* New ways to spend  Orange Essence.
+
+Cosmetics[edit | edit source]
+
+;Blue Essence Emporium
+
+* Returning May 13th, 2026.
+
+;Skins
+
+* Prestige skins for  LeBlanc and  Veigar.
+
+* &#160;Day Job skins featuring Breadsticks  Irelia, Spaghetti alla  Vel'Koz, and Pizza  Sion.
+
+* &#160;The Eternal Aspects skins for  Leona and  Diana.
+
+Champion Roadmap[edit | edit source]
+
+;New Champions
+
+:The following teasers may or may not be intended to be taken literally, and may provide hints to the champion rather than their development.
+
+* An AP assassin mid laner named Locke aimed to release in Season 2, Act 2.
+
+;Champion Updates
+
+References
+
+* ↑ TL;DW: For Demacia Dev Update
+
+* ↑ League of Legends — Riot just a capybara (15 April 2025) /dev: Improving Inting and Griefing Detection
+
+* ↑ TL;DW: WASD, Smurfing & More Dev Update
+
+* ↑ X — justacapybara (29 July 2025) OE content
+
+* ↑     TL;DW: Pandemonium, Arena & More Dev Update
+
+* ↑ Pandemonium Act I Trailer
+
+* ↑ Riot Pupulasers on X: "Some players believe that League of Legends has too many champions. Turns out they’re absolutely right, and 172 is the maximum number of champions we can have in League. When Locke releases, one champion will be deleted from League forever. Vote! Write-ins permitted in comments."
+
+Patch History in  League of Legends
+
+Upcoming
+
+* PBE (26.10)
+
+* Other unreleased content
+
+2026 Cycle
+
+V26.xx
+
+Season 1
+(
+* 01
+
+* 02
+
+* 03
+
+* 04
+
+* 05
+
+* 06
+
+* 07
+
+08)
+Season 2
+(
+* 09
+)
+
+2025 Cycle
+
+V25.xx
+
+Season 1
+(
+* S1.1
+
+* S1.2
+
+* S1.3
+
+* 04
+
+* 05
+
+* 06
+
+* 07
+
+08)
+Season 2
+(
+* 09
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+16)
+Season 3
+(
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+* 23
+
+* 24
+)
+
+Season 2024
+
+V14.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+* 23
+
+* 24
+
+Season 2023
+
+V13.x
+
+* 1
+
+* 1b
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+* 23
+
+* 24
+
+Preseason
+
+* 12.22
+
+* 12.23
+
+Season 2022
+
+V12.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+Preseason
+
+* 11.23
+
+* 11.24
+
+Season 2021
+
+V11.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+Preseason
+
+* 10.23
+
+* 10.24
+
+* 10.25
+
+Season 2020
+
+V10.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+Preseason
+
+* 9.23
+
+* 9.24
+
+* 9.24b
+
+Season 2019
+
+V9.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+Preseason
+
+* 8.23
+
+* 8.24
+
+* 8.24b
+
+Season 2018
+
+V8.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+* 22
+
+Preseason
+
+* 7.22
+
+* 7.23
+
+* 7.24
+
+* 7.24b
+
+Season 2017
+
+V7.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+Preseason
+
+* 6.22
+
+* 6.23
+
+* 6.24
+
+Season 2016
+
+V6.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+Preseason
+
+* 5.22
+
+* 5.23
+
+* 5.24
+
+Season 2015
+
+V5.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+* 20
+
+* 21
+
+Preseason
+
+* 4.20
+
+* 4.21
+
+Season 2014
+
+V4.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 11
+
+* 12
+
+* 13
+
+* 14
+
+* 15
+
+* 16
+
+* 17
+
+* 18
+
+* 19
+
+Preseason
+
+* 3.14
+
+* 3.15
+
+Season Three
+(2013)
+
+V3.x
+
+* 1
+
+* 2
+
+* 3
+
+* 4
+
+* 5
+
+* (Balance Update)
+
+* 6
+
+* 7
+
+* 8
+
+* 9
+
+* 10
+
+* 10a
+
+* 11
+
+* 12
+
+* 13
+
+Preseason
+
+* 1.0.0.152
+
+* 1.0.0.153
+
+* 1.0.0.154
+
+Season Two
+(2012)
+
+V1.0.0.x
+
+* 126
+
+* 127
+
+* 128
+
+* 129
+
+* 130
+
+* 131
+
+* 132
+
+* 133
+
+* 134
+
+* 135
+
+* 136
+
+* 138
+
+* 139
+
+* 140
+
+* 140b
+
+* 141
+
+* 142
+
+* 143
+
+* 144
+
+* 145
+
+* 146
+
+* 147
+
+* 147b
+
+* 148
+
+* 149
+
+* 150
+
+* 151
+
+Season One
+(2010–2011)
+
+V1.0.0.x
+
+* 96
+
+* 97
+
+* 98
+
+* 99
+
+* 100
+
+* 101
+
+* 102
+
+* 103
+
+* 104
+
+* 105
+
+* 106
+
+* 107
+
+* 108
+
+* 109
+
+* 110
+
+* 111
+
+* 112
+
+* 113
+
+* 114
+
+* 115
+
+* 116
+
+* 118
+
+* 118b
+
+* 119
+
+* 120
+
+* 121
+
+* 122
+
+* 123
+
+* 124
+
+* 125
+
+Official Launch
+
+V1.0.0.x
+
+* 32
+
+* 52
+
+* 58
+
+* 61
+
+* 63
+
+* 70
+
+* 72
+
+* 74
+
+* 75
+
+* 79
+
+* 81
+
+* 82
+
+* 83
+
+* 85
+
+* 86
+
+* 87
+
+* 94
+
+* 94b
+
+Beta Stage
+
+V0.9.x
+
+* 9.22.4
+
+* 9.22.7
+
+* 9.22.9
+
+* 9.22.15
+
+* 9.22.16
+
+* 9.22.18
+
+* 9.25.21
+
+* 9.25.24
+
+* 9.25.34
+
+V0.8.x
+
+* 21.110
+
+* 22.115
+
+2009-x
+
+* 04-11
+
+* 04-18
+
+* 04-25
+
+* 05-01
+
+* 05-09
+
+* 05-15
+
+* 05-23
+
+* 05-29
+
+* 06-06
+
+* 06-12
+
+* 06-19
+
+* 06-26
+
+* 07-10
+
+Alpha Stage
+
+* Week 2
+
+* Week 3
+
+* Week 4
+
+* Week 5
+
+* Week 6
+
+* Week 7
+
+April Fools' Patches
+
+* Urf
+
+* April Fool's Patch 2011
+
+* Cho'Gath Eats the World
+
+* Ultra Rapid Fire
+
+ League of Legends content Summoner's Rift
+ The newest and most venerated battleground is known as Summoner's Rift. Traverse down one of three different paths in order to attack your enemy at their weakest point. Work with your allies to siege the enemy base and destroy their Nexus!
+
+;Regular Modes
+
+*  Classic 5v5
+
+*  Custom
+
+; Featured Game Modes
+
+*  Doom Bots
+
+*  One For All
+
+*  Ultimate Spellbook
+
+*  Ultra Rapid Fire
+
+ League of Legends
+League of Legends (or LoL; initially  League of Legends: Clash of Fates) is a multiplayer online battle arena (MOBA) genre video game developed by  Riot Games.
+
+;Platform
+
+* Microsoft Windows, macOS
+
+;Regular Map
+
+* Summoner's Rift

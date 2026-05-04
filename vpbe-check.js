@@ -1,4 +1,6 @@
 require("dotenv").config();
+const fs = require("fs");
+const STATE_FILE = "./state.json";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const VPBE_URL = "https://wiki.leagueoflegends.com/en-us/VPBE";
@@ -16,6 +18,18 @@ const API =
   `&rvlimit=${REVISION_LIMIT}&format=json&origin=*`;
 
 // ================= FETCH =================
+
+function loadState() {
+  if (!fs.existsSync(STATE_FILE)) {
+    return { lastRevisionId: null };
+  }
+
+  return JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
+}
+
+function saveState(state) {
+  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
 
 async function getRevisions() {
   const res = await fetch(API);
@@ -483,30 +497,62 @@ async function main() {
   console.log(`Checking VPBE. MODE = ${MODE}`);
 
   const revisions = await getRevisions();
-
   const newest = revisions[0];
-  const previous = revisions[revisions.length - 1];
 
-  let message;
+  const state = loadState();
 
-  if (MODE === "full") {
-    message = formatFullMessage(newest.content, newest);
+  // 🔥 פעם ראשונה
+  if (!state.lastRevisionId) {
+    console.log("Init state");
 
-    console.log(`Newest revision: ${newest.id}`);
-    console.log("Using full current page mode");
-  } else if (MODE === "diff") {
-    const addedLines = getAddedLines(previous.content, newest.content);
-    const items = parseDiffLines(addedLines);
+    saveState({
+      lastRevisionId: newest.id,
+    });
 
-    message = formatDiffMessage(items, newest, previous);
-
-    console.log(`Previous revision: ${previous.id}`);
-    console.log(`Newest revision: ${newest.id}`);
-    console.log(`Raw added lines: ${addedLines.length}`);
-    console.log(`Readable items: ${items.length}`);
-  } else {
-    throw new Error(`Unknown MODE: ${MODE}`);
+    return;
   }
+
+  // 🔥 למצוא את ה־revision האחרון ששלחנו
+  const lastIndex = revisions.findIndex((r) => r.id === state.lastRevisionId);
+
+  if (lastIndex === -1) {
+    console.log("Last revision not found, resetting state");
+
+    saveState({
+      lastRevisionId: newest.id,
+    });
+
+    return;
+  }
+
+  // 🔥 אין שינוי
+  if (lastIndex === 0) {
+    console.log("No changes");
+    return;
+  }
+
+  // 🔥 יש שינויים — משווים בין הישן לחדש
+  const previous = revisions[lastIndex];
+
+  const addedLines = getAddedLines(previous.content, newest.content);
+  const items = parseDiffLines(addedLines);
+
+  console.log(`Previous revision: ${previous.id}`);
+  console.log(`Newest revision: ${newest.id}`);
+  console.log(`Raw added lines: ${addedLines.length}`);
+  console.log(`Readable items: ${items.length}`);
+
+  if (!items.length) {
+    console.log("No readable changes");
+
+    saveState({
+      lastRevisionId: newest.id,
+    });
+
+    return;
+  }
+
+  const message = formatDiffMessage(items, newest, previous);
 
   console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");
   console.log(message);
@@ -516,6 +562,11 @@ async function main() {
     await sendToDiscord(message);
     console.log("Sent to Discord");
   }
+
+  // 🔥 חשוב — לעדכן state
+  saveState({
+    lastRevisionId: newest.id,
+  });
 }
 
 main().catch(console.error);

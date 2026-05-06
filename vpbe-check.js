@@ -1,23 +1,20 @@
 require("dotenv").config();
 const fs = require("fs");
+
 const STATE_FILE = "./state.json";
 
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const VPBE_URL = "https://wiki.leagueoflegends.com/en-us/VPBE";
 
-const MODE = "diff";
-// "full" = בדיקות פורמט, כל מה שקיים בדף עכשיו
-// "diff" = רק מה שנוסף בין revisions
-
-const REVISION_LIMIT = 20;
-const SEND_TO_DISCORD = true;
+const REVISION_LIMIT = 50;
+const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
 const API =
   `https://wiki.leagueoflegends.com/en-us/api.php?action=query&titles=VPBE` +
   `&prop=revisions&rvprop=ids|timestamp|content&rvslots=main` +
   `&rvlimit=${REVISION_LIMIT}&format=json&origin=*`;
 
-// ================= FETCH =================
+// ================= STATE =================
 
 function loadState() {
   if (!fs.existsSync(STATE_FILE)) {
@@ -30,6 +27,8 @@ function loadState() {
 function saveState(state) {
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 }
+
+// ================= FETCH =================
 
 async function getRevisions() {
   const res = await fetch(API);
@@ -53,15 +52,7 @@ async function getRevisions() {
   }));
 }
 
-// ================= BASIC HELPERS =================
-
-function sectionBetween(text, startMarker, endMarker) {
-  const start = text.indexOf(startMarker);
-  if (start === -1) return "";
-
-  const end = text.indexOf(endMarker, start + startMarker.length);
-  return text.slice(start, end === -1 ? undefined : end);
-}
+// ================= CLEANING =================
 
 function cleanWikiText(text = "") {
   return text
@@ -101,165 +92,125 @@ function shouldIgnoreLine(line = "") {
 
   if (!l) return true;
   if (l.startsWith("<!--")) return true;
+  if (l.startsWith("-->")) return true;
+  if (l.includes("¦")) return true;
+
   if (l.startsWith("|")) return true;
   if (l.startsWith("{{Infobox")) return true;
+  if (l.includes("{{Infobox pbe")) return true;
   if (l.startsWith("{{GalleryHelper")) return true;
   if (l.startsWith("}}")) return true;
+
   if (l.startsWith("[[Category")) return true;
   if (l.startsWith("[[cs:")) return true;
   if (l.startsWith("[[de:")) return true;
   if (l.startsWith("[[es:")) return true;
   if (l.startsWith("[[pt-br:")) return true;
+
   if (l.startsWith("<gallery")) return true;
   if (l.startsWith("</gallery")) return true;
   if (l.startsWith("<center")) return true;
   if (l.startsWith("</center")) return true;
+
   if (l.includes("{{References}}")) return true;
   if (l.includes("{{Release history}}")) return true;
   if (l.includes("{{DISPLAYTITLE")) return true;
 
+  if (l.includes("This page documents all confirmed changes")) return true;
+  if (l.includes("Documented changes may or may not be final")) return true;
+
   return false;
 }
 
-// ================= CURRENT PAGE PARSING =================
+// ================= SECTIONS =================
 
-function parseCurrentCosmetics(content) {
-  const block = sectionBetween(
-    content,
-    "== New Cosmetics ==",
-    "== League of Legends VPBE ==",
-  );
+function parseHeading(line = "") {
+  const match = line.match(/^(={2,6})\s*(.*?)\s*\1$/);
+  if (!match) return null;
 
-  const skins = [];
-  const chromas = [];
-
-  const skinRegex =
-    /\*\s*\{\{csl\|([^|}]+)\|([^|}]+)\}\}\s*\(\{\{RP\|(\d+)\}\}\)/g;
-
-  const chromaRegex = /\*\s*\{\{csl\|([^|}]+)\|([^|}]+)\|chromas=true\}\}/g;
-
-  let match;
-
-  while ((match = skinRegex.exec(block)) !== null) {
-    skins.push({
-      champion: cleanWikiText(match[1]),
-      skin: cleanWikiText(match[2]),
-      price: cleanWikiText(match[3]),
-    });
-  }
-
-  while ((match = chromaRegex.exec(block)) !== null) {
-    chromas.push({
-      champion: cleanWikiText(match[1]),
-      skin: cleanWikiText(match[2]),
-    });
-  }
-
-  return { skins, chromas };
+  return {
+    level: match[1].length,
+    title: cleanWikiText(match[2]),
+  };
 }
 
-function parseUpcoming(content) {
-  const block = sectionBetween(content, "== Upcoming ==", "{{References}}");
-  const lines = block.split("\n");
-
-  const items = [];
-
-  let category = "Upcoming";
-  let title = null;
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-
-    if (shouldIgnoreLine(line)) continue;
-
-    if (line.startsWith("== Upcoming ==")) continue;
-
-    if (line.startsWith("===")) {
-      category = cleanWikiText(line.replace(/=/g, ""));
-      title = null;
-      continue;
-    }
-
-    if (line.startsWith(";")) {
-      title = cleanWikiText(line);
-      continue;
-    }
-
-    if (line.startsWith(":")) {
-      const text = cleanWikiText(line);
-      if (!text) continue;
-
-      items.push({
-        category,
-        title,
-        level: 1,
-        text,
-      });
-
-      continue;
-    }
-
-    if (line.startsWith("*")) {
-      const level = line.match(/^\*+/)?.[0].length || 1;
-      const text = cleanWikiText(line);
-
-      if (!text) continue;
-
-      items.push({
-        category,
-        title,
-        level,
-        text,
-      });
-    }
-  }
-
-  return items;
-}
-
-// ================= DIFF PARSING =================
-
-function getAddedLines(oldText, newText) {
+function getAddedLinesWithSections(oldText, newText) {
   const oldLines = new Set(
     oldText.split("\n").map(normalizeLine).filter(Boolean),
   );
 
-  return newText
-    .split("\n")
-    .map(normalizeLine)
-    .filter(Boolean)
-    .filter((line) => !oldLines.has(line));
+  const added = [];
+  const sectionStack = [];
+
+  for (const rawLine of newText.split("\n")) {
+    const line = normalizeLine(rawLine);
+    if (!line) continue;
+
+    const heading = parseHeading(line);
+
+    if (heading) {
+      while (
+        sectionStack.length &&
+        sectionStack[sectionStack.length - 1].level >= heading.level
+      ) {
+        sectionStack.pop();
+      }
+
+      sectionStack.push(heading);
+      continue;
+    }
+
+    if (oldLines.has(line)) continue;
+
+    const sectionPath = sectionStack.map((s) => s.title).filter(Boolean);
+    const section = sectionPath.length ? sectionPath.join(" / ") : "General";
+
+    added.push({
+      raw: line,
+      section,
+      sectionPath,
+    });
+  }
+
+  return added;
 }
 
-function parseDiffLines(addedLines) {
+// ================= PARSING =================
+
+function parseDiffLines(addedEntries) {
   const items = [];
 
-  for (const rawLine of addedLines) {
+  for (const entry of addedEntries) {
+    const rawLine = entry.raw;
+
     if (shouldIgnoreLine(rawLine)) continue;
 
     const text = cleanWikiText(rawLine);
     if (!text || text.length < 3) continue;
 
-    const type = classifyDiffLine(rawLine, text);
+    const type = classifyDiffLine(rawLine, text, entry.section);
 
     items.push({
       type,
       text,
       raw: rawLine,
+      section: entry.section || "General",
     });
   }
 
   return items;
 }
 
-function classifyDiffLine(rawLine, text) {
+function classifyDiffLine(rawLine, text, section = "") {
   const raw = rawLine.toLowerCase();
   const t = text.toLowerCase();
+  const s = section.toLowerCase();
 
   if (raw.includes("chromas=true")) return "chromas";
   if (raw.includes("{{csl|")) return "skins";
 
   if (
+    s.includes("cosmetic") ||
     t.includes("skin") ||
     t.includes("skins") ||
     t.includes("chroma") ||
@@ -271,6 +222,7 @@ function classifyDiffLine(rawLine, text) {
   }
 
   if (
+    s.includes("champion roadmap") ||
     t.includes("new champion") ||
     t.includes("champion roadmap") ||
     t.includes("locke") ||
@@ -305,95 +257,36 @@ function classifyDiffLine(rawLine, text) {
 
 // ================= FORMAT =================
 
-function formatUpcomingItem(item) {
-  const bullet = item.level > 1 ? "  ◦" : "•";
+function groupBySection(items) {
+  const grouped = {};
 
-  if (item.title) {
-    return `${bullet} **${item.title}** — ${item.text}`;
+  for (const item of items) {
+    if (!grouped[item.section]) {
+      grouped[item.section] = [];
+    }
+
+    grouped[item.section].push(item);
   }
 
-  return `${bullet} ${item.text}`;
+  return grouped;
 }
 
-function formatFullMessage(content, revision) {
-  const current = parseCurrentCosmetics(content);
-  const upcoming = parseUpcoming(content);
-
-  const game = upcoming.filter((x) => x.category === "Game");
-  const cosmetics = upcoming.filter((x) => x.category === "Cosmetics");
-  const champions = upcoming.filter((x) => x.category === "Champion Roadmap");
-
-  let msg = "";
-
-  msg += `🟣 **VPBE Patch Notes Preview**\n`;
-  msg += `🕒 ${revision.timestamp}\n`;
-  msg += `🔗 ${VPBE_URL}\n`;
-  msg += `🧪 Mode: FULL current page, no state\n\n`;
-
-  msg += `🔥 **Current PBE Patch**\n\n`;
-
-  if (current.skins.length) {
-    msg += `🎨 **New Skins**\n`;
-    for (const skin of current.skins) {
-      msg += `• **${skin.skin} ${skin.champion}** — ${skin.price} RP\n`;
-    }
-    msg += "\n";
-  }
-
-  if (current.chromas.length) {
-    msg += `🌈 **New Chromas**\n`;
-    for (const chroma of current.chromas) {
-      msg += `• **${chroma.skin} ${chroma.champion}**\n`;
-    }
-    msg += "\n";
-  }
-
-  if (game.length || cosmetics.length || champions.length) {
-    msg += `🔮 **Upcoming / Roadmap**\n\n`;
-  }
-
-  if (game.length) {
-    msg += `⚙️ **Game**\n`;
-    for (const item of game) {
-      msg += `${formatUpcomingItem(item)}\n`;
-    }
-    msg += "\n";
-  }
-
-  if (cosmetics.length) {
-    msg += `🎁 **Upcoming Cosmetics**\n`;
-    for (const item of cosmetics) {
-      msg += `${formatUpcomingItem(item)}\n`;
-    }
-    msg += "\n";
-  }
-
-  if (champions.length) {
-    msg += `🆕 **Champion Roadmap**\n`;
-    for (const item of champions) {
-      msg += `${formatUpcomingItem(item)}\n`;
-    }
-    msg += "\n";
-  }
-
-  return msg.trim();
+function emojiForType(type) {
+  if (type === "skins") return "🎨";
+  if (type === "chromas") return "🌈";
+  if (type === "cosmetics") return "🎁";
+  if (type === "champions") return "🆕";
+  if (type === "buffs") return "🟢";
+  if (type === "nerfs") return "🔴";
+  return "⚙️";
 }
 
 function formatDiffMessage(items, newest, previous) {
-  const skins = items.filter((x) => x.type === "skins");
-  const chromas = items.filter((x) => x.type === "chromas");
-  const cosmetics = items.filter((x) => x.type === "cosmetics");
-  const champions = items.filter((x) => x.type === "champions");
-  const buffs = items.filter((x) => x.type === "buffs");
-  const nerfs = items.filter((x) => x.type === "nerfs");
-  const systems = items.filter((x) => x.type === "systems");
-
   let msg = "";
 
-  msg += `🟣 **VPBE Revision Diff Preview**\n`;
+  msg += `🟣 **VPBE Revision Diff**\n`;
   msg += `🕒 ${newest.timestamp}\n`;
-  msg += `🔗 ${VPBE_URL}\n`;
-  msg += `🧪 Mode: DIFF, no state\n`;
+  msg += `🔗 <${VPBE_URL}>\n`;
   msg += `🧾 Revision: ${previous.id} → ${newest.id}\n\n`;
 
   if (!items.length) {
@@ -401,45 +294,15 @@ function formatDiffMessage(items, newest, previous) {
     return msg;
   }
 
-  if (skins.length) {
-    msg += `🎨 **New Skins**\n`;
-    for (const item of skins) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
+  const grouped = groupBySection(items);
 
-  if (chromas.length) {
-    msg += `🌈 **New Chromas**\n`;
-    for (const item of chromas) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
+  for (const [section, sectionItems] of Object.entries(grouped)) {
+    msg += `📂 **${section}**\n`;
 
-  if (cosmetics.length) {
-    msg += `🎁 **Other Cosmetics**\n`;
-    for (const item of cosmetics) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
+    for (const item of sectionItems) {
+      msg += `${emojiForType(item.type)} ${item.text}\n`;
+    }
 
-  if (champions.length) {
-    msg += `🆕 **Champions / Roadmap**\n`;
-    for (const item of champions) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
-
-  if (buffs.length) {
-    msg += `🟢 **Possible Buffs**\n`;
-    for (const item of buffs) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
-
-  if (nerfs.length) {
-    msg += `🔴 **Possible Nerfs**\n`;
-    for (const item of nerfs) msg += `• ${item.text}\n`;
-    msg += "\n";
-  }
-
-  if (systems.length) {
-    msg += `⚙️ **Systems / Other**\n`;
-    for (const item of systems) msg += `• ${item.text}\n`;
     msg += "\n";
   }
 
@@ -455,7 +318,7 @@ function splitDiscordMessage(text, maxLength = 1900) {
 
   for (const line of lines) {
     if ((current + line + "\n").length > maxLength) {
-      chunks.push(current.trim());
+      if (current.trim()) chunks.push(current.trim());
       current = "";
     }
 
@@ -494,14 +357,14 @@ async function sendToDiscord(message) {
 // ================= MAIN =================
 
 async function main() {
-  console.log(`Checking VPBE. MODE = ${MODE}`);
+  console.log("Checking VPBE");
+  console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
 
   const revisions = await getRevisions();
   const newest = revisions[0];
 
   const state = loadState();
 
-  // 🔥 פעם ראשונה
   if (!state.lastRevisionId) {
     console.log("Init state");
 
@@ -512,11 +375,11 @@ async function main() {
     return;
   }
 
-  // 🔥 למצוא את ה־revision האחרון ששלחנו
   const lastIndex = revisions.findIndex((r) => r.id === state.lastRevisionId);
 
   if (lastIndex === -1) {
-    console.log("Last revision not found, resetting state");
+    console.log("Last revision not found in fetched revision list.");
+    console.log("Resetting state to newest revision.");
 
     saveState({
       lastRevisionId: newest.id,
@@ -525,21 +388,22 @@ async function main() {
     return;
   }
 
-  // 🔥 אין שינוי
   if (lastIndex === 0) {
     console.log("No changes");
     return;
   }
 
-  // 🔥 יש שינויים — משווים בין הישן לחדש
   const previous = revisions[lastIndex];
 
-  const addedLines = getAddedLines(previous.content, newest.content);
-  const items = parseDiffLines(addedLines);
+  const addedEntries = getAddedLinesWithSections(
+    previous.content,
+    newest.content,
+  );
+  const items = parseDiffLines(addedEntries);
 
   console.log(`Previous revision: ${previous.id}`);
   console.log(`Newest revision: ${newest.id}`);
-  console.log(`Raw added lines: ${addedLines.length}`);
+  console.log(`Raw added lines: ${addedEntries.length}`);
   console.log(`Readable items: ${items.length}`);
 
   if (!items.length) {
@@ -561,9 +425,10 @@ async function main() {
   if (SEND_TO_DISCORD) {
     await sendToDiscord(message);
     console.log("Sent to Discord");
+  } else {
+    console.log("Dry run only. Discord message was not sent.");
   }
 
-  // 🔥 חשוב — לעדכן state
   saveState({
     lastRevisionId: newest.id,
   });

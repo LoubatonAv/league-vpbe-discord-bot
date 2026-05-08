@@ -1,15 +1,15 @@
-name: VPBE Discord Bot
+name: League Skin Sale Updates
 
 on:
   schedule:
-    - cron: "0 7 * * *"
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  run:
+  skin-sale:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,16 +24,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run VPBE bot
-        run: node check/vpbe/vpbe-check.js
+      - name: Run skin sale checker
+        run: node skin-sale-check.js
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-      - name: Commit updated state
+      - name: Commit skin sale state
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add check/vpbe/vpbe-check-state.json
-          git commit -m "update vpbe state" || echo "No state changes"
+
+          git add check/skin-sale/skin-sale-state.json
+          git commit -m "update skin sale state" || echo "No skin sale state changes"
+
           git pull --rebase
           git push

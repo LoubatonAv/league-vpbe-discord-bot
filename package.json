@@ -3,14 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "vpbe": "node check/vpbe/vpbe-check.js",
+    "skin-sale": "node check/skin-sale/skin-sale-check.js",
+    "mythic-shop": "node check/mythic-shop/mythic-shop-check.js",
+    "phroxzon": "node check/phroxzon/phroxzon-check.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cheerio": "^1.2.0",
     "diff": "^9.0.0",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "playwright": "^1.59.1"
   }
 }

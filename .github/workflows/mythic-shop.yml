@@ -1,15 +1,15 @@
-name: VPBE Discord Bot
+name: League Mythic Shop Updates
 
 on:
   schedule:
-    - cron: "0 7 * * *"
+    - cron: "30 1 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  run:
+  mythic-shop:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,16 +24,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run VPBE bot
-        run: node check/vpbe/vpbe-check.js
+      - name: Run Mythic Shop checker
+        run: node mythic-shop-check.js
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-      - name: Commit updated state
+      - name: Commit Mythic Shop state
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add check/vpbe/vpbe-check-state.json
-          git commit -m "update vpbe state" || echo "No state changes"
+
+          git add check/mythic-shop/mythic-shop-state.json
+          git commit -m "update mythic shop state" || echo "No mythic shop state changes"
+
           git pull --rebase
           git push

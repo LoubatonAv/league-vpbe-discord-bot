@@ -1,0 +1,157 @@
+{
+  "hash": "b108ada4e08970b39c6cd446e82d63a76950d78f6fc08e2d18c3d988e8197abc",
+  "saleRange": "4th-11th May",
+  "skins": [
+    {
+      "fullName": "Battle Queen Gwen",
+      "displayName": "Gwen - Battle Queen",
+      "skinName": "Battle Queen",
+      "champion": "Gwen",
+      "tier": "Unknown",
+      "discount": 35,
+      "salePrice": 877,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Battle Queen Janna",
+      "displayName": "Janna - Battle Queen",
+      "skinName": "Battle Queen",
+      "champion": "Janna",
+      "tier": "Unknown",
+      "discount": 55,
+      "salePrice": 607,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "BZZZiggs",
+      "displayName": "BZZZiggs",
+      "skinName": "BZZZiggs",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "discount": 55,
+      "salePrice": 607,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Dino Gnar",
+      "displayName": "Gnar - Dino",
+      "skinName": "Dino",
+      "champion": "Gnar",
+      "tier": "Unknown",
+      "discount": 55,
+      "salePrice": 438,
+      "originalPrice": 975
+    },
+    {
+      "fullName": "Dragon Guardian Galio",
+      "displayName": "Galio - Dragon Guardian",
+      "skinName": "Dragon Guardian",
+      "champion": "Galio",
+      "tier": "Unknown",
+      "discount": 50,
+      "salePrice": 675,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Faerie Court Lillia",
+      "displayName": "Lillia - Faerie Court",
+      "skinName": "Faerie Court",
+      "champion": "Lillia",
+      "tier": "Unknown",
+      "discount": 25,
+      "salePrice": 1012,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Hyena Warwick",
+      "displayName": "Warwick - Hyena",
+      "skinName": "Hyena",
+      "champion": "Warwick",
+      "tier": "Unknown",
+      "discount": 60,
+      "salePrice": 390,
+      "originalPrice": 975
+    },
+    {
+      "fullName": "Immortal Journey Sona",
+      "displayName": "Sona - Immortal Journey",
+      "skinName": "Immortal Journey",
+      "champion": "Sona",
+      "tier": "Unknown",
+      "discount": 50,
+      "salePrice": 675,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Mecha Kingdoms Wukong",
+      "displayName": "Wukong - Mecha Kingdoms",
+      "skinName": "Mecha Kingdoms",
+      "champion": "Wukong",
+      "tier": "Unknown",
+      "discount": 27,
+      "salePrice": 975,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Midnight Ahri",
+      "displayName": "Ahri - Midnight",
+      "skinName": "Midnight",
+      "champion": "Ahri",
+      "tier": "Unknown",
+      "discount": 55,
+      "salePrice": 337,
+      "originalPrice": 750
+    },
+    {
+      "fullName": "Odyssey Jinx",
+      "displayName": "Jinx - Odyssey",
+      "skinName": "Odyssey",
+      "champion": "Jinx",
+      "tier": "Unknown",
+      "discount": 60,
+      "salePrice": 540,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Reindeer Smolder",
+      "displayName": "Smolder - Reindeer",
+      "skinName": "Reindeer",
+      "champion": "Smolder",
+      "tier": "Unknown",
+      "discount": 27,
+      "salePrice": 975,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Shockblade Shen",
+      "displayName": "Shen - Shockblade",
+      "skinName": "Shockblade",
+      "champion": "Shen",
+      "tier": "Unknown",
+      "discount": 45,
+      "salePrice": 742,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Snow Moon Kayn",
+      "displayName": "Kayn - Snow Moon",
+      "skinName": "Snow Moon",
+      "champion": "Kayn",
+      "tier": "Unknown",
+      "discount": 50,
+      "salePrice": 675,
+      "originalPrice": 1350
+    },
+    {
+      "fullName": "Street Demons Dr. Mundo",
+      "displayName": "Mundo - Street Demons Dr.",
+      "skinName": "Street Demons Dr.",
+      "champion": "Mundo",
+      "tier": "Unknown",
+      "discount": 50,
+      "salePrice": 675,
+      "originalPrice": 1350
+    }
+  ],
+  "updatedAt": "2026-05-08T10:08:43.293Z"
+}

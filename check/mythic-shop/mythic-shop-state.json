@@ -1,0 +1,103 @@
+{
+  "hash": "7f8dc986c099c3eb6dba972cad1134b0761cdff834063d9e51974a7a15cac0a9",
+  "title": "LoL Mythic Shop Rotation (Patch 26.9)",
+  "rotationTitle": "Until 20th May",
+  "items": [
+    {
+      "type": "prestige",
+      "name": "Prestige Porcelain Lux",
+      "price": 150
+    },
+    {
+      "type": "mythic",
+      "name": "Hextech Sejuani",
+      "price": 125
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige PROJECT: Irelia",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Ascended Pantheon",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Battle Lion Leona",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige DRX Aatrox",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Space Groove Lulu",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Soul Fighter Shaco",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Obsidian Dragon Sett",
+      "price": 150
+    },
+    {
+      "type": "mythic",
+      "name": "Crystalis Indomitus Xerath",
+      "price": 125
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige PROJECT: Sylas",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Spirit Bloom Master Yi",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Coven Leblanc",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Coven Akali",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Coven Zyra",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Blood Moon Aatrox",
+      "price": 150
+    },
+    {
+      "type": "mythic",
+      "name": "Soulstealer Vayne",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige PROJECT: Zed",
+      "price": 150
+    },
+    {
+      "type": "prestige",
+      "name": "Prestige Money Miser Mordekaiser",
+      "price": 150
+    }
+  ],
+  "updatedAt": "2026-05-08T14:24:21.798Z"
+}

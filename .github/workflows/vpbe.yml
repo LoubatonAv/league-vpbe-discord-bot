@@ -29,6 +29,7 @@ jobs:
         env:
           VPBE_WEBHOOK_URL: ${{ secrets.VPBE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
+          SEND_TO_DISCORD: "true"
 
       - name: Commit updated state
         run: |

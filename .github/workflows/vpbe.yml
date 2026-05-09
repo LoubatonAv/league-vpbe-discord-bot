@@ -25,7 +25,7 @@ jobs:
         run: npm install
 
       - name: Run VPBE bot
-        run: node check/vpbe/vpbe-check.js
+        run: npm run vpbe
         env:
           VPBE_WEBHOOK_URL: ${{ secrets.VPBE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}

@@ -25,7 +25,7 @@ jobs:
         run: npm install
 
       - name: Run Mythic Shop checker
-        run: node mythic-shop-check.js
+        run: npm run mythic-shop
         env:
           MYTHIC_SHOP_WEBHOOK_URL: ${{ secrets.MYTHIC_SHOP_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}

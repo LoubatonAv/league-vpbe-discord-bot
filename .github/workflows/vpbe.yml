@@ -27,7 +27,7 @@ jobs:
       - name: Run VPBE bot
         run: node check/vpbe/vpbe-check.js
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.VPBE_WEBHOOK_URL }}
+          VPBE_WEBHOOK_URL: ${{ secrets.VPBE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
 
       - name: Commit updated state

@@ -5,7 +5,7 @@ const path = require("path");
 
 const STATE_FILE = path.join(__dirname, "vpbe-check-state.json");
 
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const DISCORD_WEBHOOK_URL = process.env.VPBE_WEBHOOK_URL;
 const VPBE_URL = "https://wiki.leagueoflegends.com/en-us/VPBE";
 
 const REVISION_LIMIT = 50;
@@ -586,6 +586,34 @@ async function sendToDiscord(message) {
 
 // ================= MAIN =================
 
+async function sendErrorToDiscord(error) {
+  const webhook = process.env.ERROR_WEBHOOK_URL;
+
+  if (!webhook) {
+    console.log("No ERROR_WEBHOOK_URL found");
+    return;
+  }
+
+  const content =
+    `🚨 Bot Error\n` +
+    `📄 Script: ${path.basename(__filename)}\n\n` +
+    `❌ ${error.stack || error.message || error}`;
+
+  try {
+    await fetch(webhook, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: content.slice(0, 1900),
+      }),
+    });
+  } catch (err) {
+    console.error("Failed sending error webhook:", err);
+  }
+}
+
 async function main() {
   console.log("Checking VPBE");
   console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
@@ -655,7 +683,10 @@ async function main() {
   });
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
+
+  await sendErrorToDiscord(err);
+
   process.exitCode = 1;
 });

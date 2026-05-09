@@ -27,7 +27,8 @@ jobs:
       - name: Run skin sale checker
         run: node skin-sale-check.js
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.SKIN_SALE_WEBHOOK_URL }}
+          ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
 
       - name: Commit skin sale state
         run: |

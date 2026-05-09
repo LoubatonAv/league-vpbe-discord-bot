@@ -7,7 +7,7 @@ const cheerio = require("cheerio");
 
 const STATE_FILE = path.join(__dirname, "mythic-shop-state.json");
 
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const DISCORD_WEBHOOK_URL = process.env.MYTHIC_SHOP_WEBHOOK_URL;
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
 const MYTHIC_URL = "https://mobalytics.gg/lol/guides/mythic-shop-rotation";
@@ -360,6 +360,33 @@ async function sendToDiscord(message) {
 }
 
 // ================= MAIN =================
+async function sendErrorToDiscord(error) {
+  const webhook = process.env.ERROR_WEBHOOK_URL;
+
+  if (!webhook) {
+    console.log("No ERROR_WEBHOOK_URL found");
+    return;
+  }
+
+  const content =
+    `🚨 Bot Error\n` +
+    `📄 Script: ${path.basename(__filename)}\n\n` +
+    `❌ ${error.stack || error.message || error}`;
+
+  try {
+    await fetch(webhook, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: content.slice(0, 1900),
+      }),
+    });
+  } catch (err) {
+    console.error("Failed sending error webhook:", err);
+  }
+}
 
 async function main() {
   console.log("Checking Mythic Shop rotation");
@@ -434,7 +461,10 @@ async function main() {
   });
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
+
+  await sendErrorToDiscord(err);
+
   process.exitCode = 1;
 });

@@ -27,7 +27,9 @@ jobs:
       - name: Run Mythic Shop checker
         run: node mythic-shop-check.js
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VPBE_WEBHOOK_URL: ${{ secrets.MYTHIC_SHOP_WEBHOOK_URL }}
+          ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
+          SEND_TO_DISCORD: "true"
 
       - name: Commit Mythic Shop state
         run: |

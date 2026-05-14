@@ -3,8 +3,10 @@ name: Essence Emporium
 on:
   schedule:
     - cron: "0 9 1 */2 *"
-
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   check-emporium:

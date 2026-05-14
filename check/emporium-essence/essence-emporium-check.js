@@ -5,10 +5,11 @@ const path = require("path");
 
 const STATE_FILE = path.join(__dirname, "essence-emporium-state.json");
 
-const EMPORIUM_URL = "https://wiki.leagueoflegends.com/en-us/Essence_Emporium";
+const EMPORIUM_URL =
+  "https://support-leagueoflegends.riotgames.com/hc/en-us/articles/115014872088-Essence-Emporium-FAQ";
 
 const EMPORIUM_API =
-  "https://wiki.leagueoflegends.com/en-us/api.php?action=query&titles=Essence_Emporium&prop=revisions&rvprop=content&rvslots=main&format=json&origin=*";
+  "https://support-leagueoflegends.riotgames.com/api/v2/help_center/en-us/articles/115014872088.json";
 
 const DISCORD_WEBHOOK_URL = process.env.ESSENCE_EMPORIUM_WEBHOOK_URL;
 
@@ -53,18 +54,16 @@ async function fetchPage() {
   });
 
   if (!res.ok) {
-    throw new Error(`Emporium API failed: ${res.status}`);
+    throw new Error(`Emporium Zendesk API failed: ${res.status}`);
   }
 
   const data = await res.json();
-  const pageId = Object.keys(data.query.pages)[0];
-  const revision = data.query.pages[pageId].revisions?.[0];
 
-  if (!revision) {
-    throw new Error("No Emporium wiki revision found");
+  if (!data.article?.body) {
+    throw new Error("No article body found in Zendesk API response");
   }
 
-  return revision.slots.main["*"];
+  return data.article.body;
 }
 
 // ================= PARSE =================
@@ -82,7 +81,7 @@ function parseEmporium(html) {
   );
 
   const match = text.match(
-    /From\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)\s+to\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?),?\s+(\d{4})/i,
+    /Start\s*[-:]\s*([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}).*?End\s*[-:]\s*([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,
   );
 
   if (!match) {

@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Run Emporium Check
-        run: node essence-emporium-check.js
+        run: node check/emporium-essence/essence-emporium-check.js
 
         env:
           ESSENCE_EMPORIUM_WEBHOOK_URL: ${{ secrets.ESSENCE_EMPORIUM_WEBHOOK_URL }}

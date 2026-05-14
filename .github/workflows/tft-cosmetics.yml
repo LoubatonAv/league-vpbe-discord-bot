@@ -1,0 +1,43 @@
+name: TFT Cosmetics Watcher
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check-tft-cosmetics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run TFT Cosmetics Check
+        run: node check/tft-cosmetics/tft-cosmetics-check.js
+        env:
+          TFT_COSMETICS_WEBHOOK_URL: ${{ secrets.TFT_COSMETICS_WEBHOOK_URL }}
+          ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
+          SEND_TO_DISCORD: true
+
+      - name: Commit state
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add check/tft-cosmetics/tft-cosmetics-state.json
+
+          git diff --cached --quiet || git commit -m "update tft cosmetics state"
+
+          git push

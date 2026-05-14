@@ -34,6 +34,11 @@ function loadState() {
       rotationTitle: null,
       items: [],
       updatedAt: null,
+
+      emporium: {
+        status: "UNKNOWN",
+        lastChangedAt: null,
+      },
     };
   }
 }
@@ -424,13 +429,13 @@ async function main() {
       rotationTitle: mythic.rotationTitle,
       items: mythic.items,
       updatedAt: new Date().toISOString(),
+
+      emporium: {
+        status: currentEmporiumStatus,
+        lastChangedAt: new Date().toISOString(),
+      },
     });
 
-    return;
-  }
-
-  if (state.hash === newHash) {
-    console.log("No Mythic Shop changes");
     return;
   }
 

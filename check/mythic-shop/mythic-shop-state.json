@@ -1,6 +1,6 @@
 {
-  "hash": "7f8dc986c099c3eb6dba972cad1134b0761cdff834063d9e51974a7a15cac0a9",
-  "title": "LoL Mythic Shop Rotation (Patch 26.9)",
+  "hash": "888fca1c7b4d0e225d559a65bccf2e0bf8ac26571271384123362e4be6d1a0e2",
+  "title": "LoL Mythic Shop Rotation (Patch 26.10)",
   "rotationTitle": "Until 20th May",
   "items": [
     {
@@ -60,11 +60,6 @@
     },
     {
       "type": "prestige",
-      "name": "Prestige Spirit Bloom Master Yi",
-      "price": 150
-    },
-    {
-      "type": "prestige",
       "name": "Prestige Coven Leblanc",
       "price": 150
     },
@@ -90,14 +85,9 @@
     },
     {
       "type": "prestige",
-      "name": "Prestige PROJECT: Zed",
-      "price": 150
-    },
-    {
-      "type": "prestige",
       "name": "Prestige Money Miser Mordekaiser",
       "price": 150
     }
   ],
-  "updatedAt": "2026-05-08T14:24:21.798Z"
+  "updatedAt": "2026-05-14T12:14:24.185Z"
 }

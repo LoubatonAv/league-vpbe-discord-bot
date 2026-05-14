@@ -1,0 +1,42 @@
+name: Essence Emporium
+
+on:
+  schedule:
+    - cron: "0 9 1 */2 *"
+
+  workflow_dispatch:
+
+jobs:
+  check-emporium:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Emporium Check
+        run: node essence-emporium-check.js
+
+        env:
+          ESSENCE_EMPORIUM_WEBHOOK_URL: ${{ secrets.ESSENCE_EMPORIUM_WEBHOOK_URL }}
+          ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
+          SEND_TO_DISCORD: true
+
+      - name: Commit state
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add essence-emporium-state.json
+
+          git diff --cached --quiet || git commit -m "update emporium state"
+
+          git push

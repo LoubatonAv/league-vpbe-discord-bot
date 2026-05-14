@@ -35,7 +35,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add essence-emporium-state.json
+          git add check/emporium-essence/essence-emporium-state.json
 
           git diff --cached --quiet || git commit -m "update emporium state"
 

@@ -5,8 +5,10 @@ const path = require("path");
 
 const STATE_FILE = path.join(__dirname, "essence-emporium-state.json");
 
-const EMPORIUM_URL =
-  "https://support-leagueoflegends.riotgames.com/hc/en-us/articles/115014872088-Essence-Emporium-FAQ";
+const EMPORIUM_URL = "https://wiki.leagueoflegends.com/en-us/Essence_Emporium";
+
+const EMPORIUM_API =
+  "https://wiki.leagueoflegends.com/en-us/api.php?action=query&titles=Essence_Emporium&prop=revisions&rvprop=content&rvslots=main&format=json&origin=*";
 
 const DISCORD_WEBHOOK_URL = process.env.ESSENCE_EMPORIUM_WEBHOOK_URL;
 
@@ -43,18 +45,26 @@ function saveState(state) {
 // ================= FETCH =================
 
 async function fetchPage() {
-  const res = await fetch(EMPORIUM_URL, {
+  const res = await fetch(EMPORIUM_API, {
     headers: {
       "User-Agent": "Mozilla/5.0 Essence Emporium Tracker/1.0",
-      Accept: "text/html,application/xhtml+xml",
+      Accept: "application/json",
     },
   });
 
   if (!res.ok) {
-    throw new Error(`Emporium page failed: ${res.status}`);
+    throw new Error(`Emporium API failed: ${res.status}`);
   }
 
-  return res.text();
+  const data = await res.json();
+  const pageId = Object.keys(data.query.pages)[0];
+  const revision = data.query.pages[pageId].revisions?.[0];
+
+  if (!revision) {
+    throw new Error("No Emporium wiki revision found");
+  }
+
+  return revision.slots.main["*"];
 }
 
 // ================= PARSE =================
@@ -72,17 +82,20 @@ function parseEmporium(html) {
   );
 
   const match = text.match(
-    /Start:\s*([A-Za-z]+\s+\d{1,2},\s+\d{4}).*?End:\s*([A-Za-z]+\s+\d{1,2},\s+\d{4})/i,
+    /From\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?)\s+to\s+([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?),?\s+(\d{4})/i,
   );
 
   if (!match) {
-    return {
-      found: false,
-    };
+    return { found: false };
   }
 
-  const startDate = new Date(match[1]);
-  const endDate = new Date(match[2] + " 23:59:59");
+  const [, startRaw, endRaw, year] = match;
+
+  const cleanStart = startRaw.replace(/(st|nd|rd|th)/gi, "");
+  const cleanEnd = endRaw.replace(/(st|nd|rd|th)/gi, "");
+
+  const startDate = new Date(`${cleanStart}, ${year}`);
+  const endDate = new Date(`${cleanEnd}, ${year} 23:59:59`);
 
   const now = new Date();
 

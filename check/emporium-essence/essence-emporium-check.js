@@ -85,16 +85,25 @@ function parseEmporium(html) {
   );
 
   if (!match) {
-    return { found: false };
+    return {
+      found: false,
+    };
   }
 
-  const [, startRaw, endRaw, year] = match;
+  const cleanDate = (value) =>
+    value
+      .replace(/(st|nd|rd|th)/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
-  const cleanStart = startRaw.replace(/(st|nd|rd|th)/gi, "");
-  const cleanEnd = endRaw.replace(/(st|nd|rd|th)/gi, "");
+  const startDate = new Date(cleanDate(match[1]));
+  const endDate = new Date(cleanDate(match[2]) + " 23:59:59");
 
-  const startDate = new Date(`${cleanStart}, ${year}`);
-  const endDate = new Date(`${cleanEnd}, ${year} 23:59:59`);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw new Error(
+      `Invalid Emporium dates parsed: start="${match[1]}", end="${match[2]}"`,
+    );
+  }
 
   const now = new Date();
 

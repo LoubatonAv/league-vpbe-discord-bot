@@ -16,14 +16,59 @@ const DISCORD_WEBHOOK_URL = process.env.TFT_BALANCE_WEBHOOK_URL;
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
 const SECTION_KEYWORDS = {
-  buffs: ["buff", "buffs"],
+  buffs: ["buff", "buffs", "large changes", "major changes"],
+
   nerfs: ["nerf", "nerfs"],
-  adjustments: ["adjustment", "adjustments", "changed", "changes"],
+
+  adjustments: [
+    "adjustment",
+    "adjustments",
+    "changed",
+    "changes",
+    "small changes",
+  ],
+
   traits: ["trait", "traits"],
-  champions: ["champion", "champions", "units", "unit"],
+
+  champions: [
+    "champion",
+    "champions",
+    "units",
+    "unit",
+    "1-cost",
+    "2-cost",
+    "3-cost",
+    "4-cost",
+    "5-cost",
+  ],
+
   augments: ["augment", "augments"],
-  items: ["item", "items", "artifact", "artifacts", "support item", "support items"],
-  systems: ["system", "systems", "encounter", "encounters", "mechanic", "mechanics"],
+
+  items: [
+    "item",
+    "items",
+    "artifact",
+    "artifacts",
+    "support item",
+    "support items",
+    "radiant item",
+    "radiant items",
+  ],
+
+  systems: [
+    "system",
+    "systems",
+    "encounter",
+    "encounters",
+    "mechanic",
+    "mechanics",
+    "pve",
+    "god boon",
+    "god boons",
+    "blessing",
+    "blessings",
+  ],
+
   bugfixes: ["bugfix", "bugfixes", "bug fix", "bug fixes", "bugs"],
 };
 
@@ -96,14 +141,26 @@ async function fetchHtml(url) {
 // ================= PARSE =================
 
 function normalizeText(text = "") {
-  return text
-    .replace(/\u002F/g, "/")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    text
+      .replace(/\u002F/g, "/")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, "'")
+
+      // split merged words
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+
+      // collapse spaces
+      .replace(/\s+/g, " ")
+
+      // remove weird spacing around symbols
+      .replace(/\s*⇒\s*/g, " ⇒ ")
+      .replace(/\s*:\s*/g, ": ")
+
+      .trim()
+  );
 }
 
 function absoluteUrl(url) {
@@ -179,6 +236,9 @@ function collectListItems($, startEl) {
     if (tag === "ul" || tag === "ol") {
       current.find("li").each((_, li) => {
         const line = normalizeText($(li).text());
+        if (line && line.length > 8 && !items.includes(line)) {
+          items.push(line);
+        }
         if (line && line.length > 2) items.push(line);
       });
     }
@@ -209,14 +269,19 @@ function parsePatchArticle(html, fallbackTitle, url) {
 
   const sections = {};
 
-  $("h2, h3").each((_, el) => {
+  $("h2, h3, h4").each((_, el) => {
     const heading = normalizeText($(el).text());
     const sectionKey = detectSectionKey(heading);
 
     if (!sectionKey) return;
 
     const lines = collectListItems($, el)
-      .map((line) => line.replace(/\s+/g, " ").trim())
+      .map((line) =>
+        line
+          .replace(/RemovedRandom/g, "Removed Random")
+          .replace(/Blessing:/g, "\nBlessing:")
+          .replace(/Divine Empathy/g, "\nDivine Empathy"),
+      )
       .filter(Boolean);
 
     if (!lines.length) return;
@@ -288,7 +353,8 @@ function formatDiscordMessage(patch) {
   }
 
   if (!hasSections) {
-    msg += "Could not extract clean balance sections. Open the source link for full patch notes.\n";
+    msg +=
+      "Could not extract clean balance sections. Open the source link for full patch notes.\n";
   }
 
   return msg.trim();
@@ -384,7 +450,9 @@ async function main() {
   const patch = parsePatchArticle(articleHtml, latest.title, latest.url);
 
   console.log(`Parsed title: ${patch.title}`);
-  console.log(`Parsed sections: ${Object.keys(patch.sections).join(", ") || "none"}`);
+  console.log(
+    `Parsed sections: ${Object.keys(patch.sections).join(", ") || "none"}`,
+  );
 
   const hashPayload = {
     title: patch.title,

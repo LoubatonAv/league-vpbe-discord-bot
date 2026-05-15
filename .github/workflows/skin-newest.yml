@@ -1,0 +1,46 @@
+name: League Newest Skins Updates
+
+on:
+  schedule:
+    - cron: "0 9 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  skin-newest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run newest skins checker
+        run: npm run skin:newest
+        env:
+          SKIN_SALE_WEBHOOK_URL: ${{ secrets.SKIN_SALE_WEBHOOK_URL }}
+          ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
+          SEND_TO_DISCORD: "true"
+
+      - name: Commit newest skins state
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add check/skin-newest/skin-newest-state.json || true
+          git commit -m "update newest skins state" || echo "No newest skins state changes"
+
+          git pull --rebase
+          git push

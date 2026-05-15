@@ -1,0 +1,276 @@
+{
+  "hash": "7c6654c96ffc8b7cefd8b83a61ecce287d74431818e288e1f2a98d067f7b9bde",
+  "skins": [
+    {
+      "name": "PROJECT: Quinn",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/quinn",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Quinn_24.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Rain Shepherd Ivern",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/ivern",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ivern_31.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Urfwick",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/warwick/urfwick",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Warwick_9.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Demoncursed Vayne",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/vayne",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Vayne_67.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Pandemonium Annie",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/annie",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Annie_59.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Pandemonium Kindred",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/kindred",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Kindred_45.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "PROJECT: Sivir",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/sivir",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Sivir_72.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "PsyOps Vladimir",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/vladimir",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Vladimir_49.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Space Groove Zac",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/zac",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Zac_33.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Bubble Bash Blitzcrank",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/blitzcrank",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Blitzcrank_66.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Choncc Kench",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/tahmkench",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/TahmKench_39.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Fried Chicken King Swain",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/swain",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Swain_42.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Pug Trainer Sejuani",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/sejuani",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Sejuani_48.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Surprise Party Vex",
+      "champion": "Unknown",
+      "tier": "Unknown",
+      "price": null,
+      "href": "https://op.gg/lol/skins/vex",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Vex_29.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Warhound Naafiri",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/naafiri/warhound_naafiri",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Naafiri_29.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Warhound Senna",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/senna/warhound_senna",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Senna_72.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Warhound Warwick",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/warwick/warhound_warwick",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Warwick_58.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Petals of Spring Lillia",
+      "champion": "Unknown",
+      "tier": "Legendary",
+      "price": null,
+      "href": "https://op.gg/lol/skins/lillia/petals_of_spring_lillia",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Lillia_46.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Ashe",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/ashe/firecracker_ashe",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ashe_84.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Caitlyn",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/caitlyn/firecracker_caitlyn",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Caitlyn_54.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Poppy",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/poppy/firecracker_poppy",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Poppy_42.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Seraphine",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/seraphine/firecracker_seraphine",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Seraphine_59.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Yuumi",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/yuumi/firecracker_yuumi",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Yuumi_70.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Firecracker Ziggs",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/ziggs/firecracker_ziggs",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ziggs_43.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Aegis Frame Galio",
+      "champion": "Unknown",
+      "tier": "Legendary",
+      "price": null,
+      "href": "https://op.gg/lol/skins/galio/aegis_frame_galio",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Galio_40.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Aegis Frame Ornn",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/ornn/aegis_frame_ornn",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ornn_29.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Battle Academia Briar",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/briar/battle_academia_briar",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Briar_20.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Battle Professor Samira",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/samira/battle_professor_samira",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Samira_35.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Petricite Nautilus",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/nautilus/petricite_nautilus",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Nautilus_39.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    },
+    {
+      "name": "Reindeer Smolder",
+      "champion": "Unknown",
+      "tier": "Epic",
+      "price": null,
+      "href": "https://op.gg/lol/skins/smolder/reindeer_smolder",
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Smolder_11.jpg?image=q_auto:good,f_png&v=1778856281",
+      "source": "OP.GG"
+    }
+  ],
+  "updatedAt": "2026-05-15T15:43:36.556Z"
+}

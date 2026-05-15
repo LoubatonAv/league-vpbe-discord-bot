@@ -1,5 +1,5 @@
 {
-  "hash": "ba12ddbae1645438ecebacc29e95b8b72e19687f144fb819be530270d4ca4d98",
+  "hash": "4e245056ec48a5c9be45649030afe9903e25164303d91493754193ff2445f3a5",
   "title": "Teamfight Tactics patch 17.3",
   "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-3",
   "sections": {
@@ -13,12 +13,12 @@
       "Kayle’s Boon: HP Per Item: 15 ⇒ 10",
       "Soraka’s Boon: HP Per Missing Player Health: 2 ⇒ 2.5",
       "Varus’s Boon: HP Per Star Level: 18 ⇒ 15. No longer counts Dark Star Black Holes and Zed clones for its bonus.",
-      "AhriBlessing: Wealth [Stage 3]: Permanently grant a champion 8% Attack Damage and Ability Power, and a 12% chance on Takedown to generate 1 gold.",
-      "Blessing: Wealth [Stage 3]: Permanently grant a champion 8% Attack Damage and Ability Power, and a 12% chance on Takedown to generate 1 gold.",
-      "SorakaDivine Empathy [Stage 3]: At 66 and 33 player Health, gain a random component.Blessing: Prosperity [Stage 2, 3]: Permanently grant a champion 80 Health, and an additional 4/6 Health for each interest you earn.",
-      "Divine Empathy [Stage 3]: At 66 and 33 player Health, gain a random component.",
-      "Blessing: Prosperity [Stage 2, 3]: Permanently grant a champion 80 Health, and an additional 4/6 Health for each interest you earn.",
-      "ThreshPandora’s Seat (Thresh) RemovedRandom loot on Stage 2 can no longer grant a Pocket RecombobulatorRandom Offering can no longer roll Ahri’s Chest of GreedChances for a Golden Remover on Stage 2 reduced",
+      "Ahri \nBlessing: Wealth [Stage 3]: Permanently grant a champion 8% Attack Damage and Ability Power, and a 12% chance on Takedown to generate 1 gold.",
+      "\nBlessing: Wealth [Stage 3]: Permanently grant a champion 8% Attack Damage and Ability Power, and a 12% chance on Takedown to generate 1 gold.",
+      "Soraka \nDivine Empathy [Stage 3]: At 66 and 33 player Health, gain a random component.\nBlessing: Prosperity [Stage 2, 3]: Permanently grant a champion 80 Health, and an additional 4/6 Health for each interest you earn.",
+      "\nDivine Empathy [Stage 3]: At 66 and 33 player Health, gain a random component.",
+      "\nBlessing: Prosperity [Stage 2, 3]: Permanently grant a champion 80 Health, and an additional 4/6 Health for each interest you earn.",
+      "Thresh Pandora’s Seat (Thresh) Removed Random loot on Stage 2 can no longer grant a Pocket Recombobulator Random Offering can no longer roll Ahri’s Chest of Greed Chances for a Golden Remover on Stage 2 reduced",
       "Pandora’s Seat (Thresh) Removed",
       "Random loot on Stage 2 can no longer grant a Pocket Recombobulator",
       "Random Offering can no longer roll Ahri’s Chest of Greed",
@@ -27,19 +27,19 @@
       "Duplicator Bundle (Varus) Tiny Duplicators: 5 ⇒ 4",
       "Starcrossed Upgrade (Varus) Now only Stage 3. [Adjusted] Your next shop contains all 2-cost units. The first one you buy is free and upgraded to 2-star.",
       "Steamroll/Steamroll+ (Evelynn) Also grants +1 gold immediately and after every win.",
-      "Artifact Anvil Banned Augments:Apotheotic ForgeForged in StrengthPortable ForgeLiving ForgeSweet Treats",
+      "Artifact Anvil Banned Augments: Apotheotic Forge Forged in Strength Portable Forge Living Forge Sweet Treats",
       "Apotheotic Forge",
       "Forged in Strength",
       "Portable Forge",
       "Living Forge",
       "Sweet Treats",
       "Double Duplicators: [Adjusted] Gain a Tiny Champion Duplicator. On 3-5, gain a Lesser Champion Duplicator.",
-      "Double Duplicators Banned Augments:Heroic Grab BagHeroic Grab Bag+Heroic Grab Bag++Team Building",
+      "Double Duplicators Banned Augments: Heroic Grab Bag Heroic Grab Bag+Heroic Grab Bag++Team Building",
       "Heroic Grab Bag",
       "Heroic Grab Bag+",
       "Heroic Grab Bag++",
       "Team Building",
-      "Emblem Ensemble Banned Augments:Branching outBranching out+Cosmic RestartCursed CrownFlexibleHard commitLegion of ThreesNew RecruitSpreading RootsSpreading Roots+Tactician’s KitchenTrait TreeTrait Tree+Urf’s GambitUrf’s Grab BagWe Stick Together",
+      "Emblem Ensemble Banned Augments: Branching out Branching out+Cosmic Restart Cursed Crown Flexible Hard commit Legion of Threes New Recruit Spreading Roots Spreading Roots+Tactician’s Kitchen Trait Tree Trait Tree+Urf’s Gambit Urf’s Grab Bag We Stick Together",
       "Branching out",
       "Branching out+",
       "Cosmic Restart",
@@ -57,7 +57,7 @@
       "Urf’s Grab Bag",
       "We Stick Together",
       "Reroll Opener Rerolls: 8 ⇒ 5",
-      "Reroll Opener Banned Augments:Calculated LossOn a RollPatience is VirtuePrismatic TicketRolling for Days",
+      "Reroll Opener Banned Augments: Calculated Loss On a Roll Patience is Virtue Prismatic Ticket Rolling for Days",
       "Calculated Loss",
       "On a Roll",
       "Patience is Virtue",
@@ -66,19 +66,19 @@
       "Stage 3-7 Gromp Base AD: 500 ⇒ 350"
     ],
     "adjustments": [
-      "Artifact Anvil Banned Augments:Apotheotic ForgeForged in StrengthPortable ForgeLiving ForgeSweet Treats",
+      "Artifact Anvil Banned Augments: Apotheotic Forge Forged in Strength Portable Forge Living Forge Sweet Treats",
       "Apotheotic Forge",
       "Forged in Strength",
       "Portable Forge",
       "Living Forge",
       "Sweet Treats",
       "Double Duplicators: [Adjusted] Gain a Tiny Champion Duplicator. On 3-5, gain a Lesser Champion Duplicator.",
-      "Double Duplicators Banned Augments:Heroic Grab BagHeroic Grab Bag+Heroic Grab Bag++Team Building",
+      "Double Duplicators Banned Augments: Heroic Grab Bag Heroic Grab Bag+Heroic Grab Bag++Team Building",
       "Heroic Grab Bag",
       "Heroic Grab Bag+",
       "Heroic Grab Bag++",
       "Team Building",
-      "Emblem Ensemble Banned Augments:Branching outBranching out+Cosmic RestartCursed CrownFlexibleHard commitLegion of ThreesNew RecruitSpreading RootsSpreading Roots+Tactician’s KitchenTrait TreeTrait Tree+Urf’s GambitUrf’s Grab BagWe Stick Together",
+      "Emblem Ensemble Banned Augments: Branching out Branching out+Cosmic Restart Cursed Crown Flexible Hard commit Legion of Threes New Recruit Spreading Roots Spreading Roots+Tactician’s Kitchen Trait Tree Trait Tree+Urf’s Gambit Urf’s Grab Bag We Stick Together",
       "Branching out",
       "Branching out+",
       "Cosmic Restart",
@@ -96,7 +96,7 @@
       "Urf’s Grab Bag",
       "We Stick Together",
       "Reroll Opener Rerolls: 8 ⇒ 5",
-      "Reroll Opener Banned Augments:Calculated LossOn a RollPatience is VirtuePrismatic TicketRolling for Days",
+      "Reroll Opener Banned Augments: Calculated Loss On a Roll Patience is Virtue Prismatic Ticket Rolling for Days",
       "Calculated Loss",
       "On a Roll",
       "Patience is Virtue",
@@ -143,7 +143,7 @@
       "Nami Spell Damage: 410/615/5000 ⇒ 440/660/5000",
       "Nunu Base Mana: 40/155 ⇒ 40/145",
       "Xayah Spell Duration: 4 seconds ⇒ 6 attacks. Spell deals 10/15/200 AD bonus damage per feather to her current target.",
-      "Morgana:Moved to a 4-costRole: Magic Fighter ⇒ Magic TankDark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.Mana: 20/60 ⇒ 30/90Attack Speed: .90 ⇒ .65HP: 800 ⇒ 1300Resists: 50 ⇒ 70AD: 50 ⇒ 60Ability Rework: Transform for 3 seconds, gaining 525/625/2500 AP + 10% HP Health and tethering to nearby champions. Over the duration, deal 100/150/3000 AP magic damage to the closest 3 enemies and restore 100/150/3000 AP health to the closest 2 injured allies.",
+      "Morgana: Moved to a 4-cost Role: Magic Fighter ⇒ Magic Tank Dark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.Mana: 20/60 ⇒ 30/90Attack Speed: .90 ⇒ .65HP: 800 ⇒ 1300Resists: 50 ⇒ 70AD: 50 ⇒ 60Ability Rework: Transform for 3 seconds, gaining 525/625/2500 AP + 10% HP Health and tethering to nearby champions. Over the duration, deal 100/150/3000 AP magic damage to the closest 3 enemies and restore 100/150/3000 AP health to the closest 2 injured allies.",
       "Moved to a 4-cost",
       "Role: Magic Fighter ⇒ Magic Tank",
       "Dark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.",
@@ -186,7 +186,7 @@
       "Vampiric Vitality II Removed",
       "Edge of Night Missing Health Heal: 30% ⇒ 20%",
       "Horizon Focus Disabled",
-      "Titanic Hydra: Xayah will only trigger the AoE effect on her primary basic attack."
+      "Titanic Hydra: Xayah will only trigger the Ao E effect on her primary basic attack."
     ],
     "champions": [
       "Briar Base AD: 40 ⇒ 35",
@@ -220,7 +220,7 @@
       "Nami Spell Damage: 410/615/5000 ⇒ 440/660/5000",
       "Nunu Base Mana: 40/155 ⇒ 40/145",
       "Xayah Spell Duration: 4 seconds ⇒ 6 attacks. Spell deals 10/15/200 AD bonus damage per feather to her current target.",
-      "Morgana:Moved to a 4-costRole: Magic Fighter ⇒ Magic TankDark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.Mana: 20/60 ⇒ 30/90Attack Speed: .90 ⇒ .65HP: 800 ⇒ 1300Resists: 50 ⇒ 70AD: 50 ⇒ 60Ability Rework: Transform for 3 seconds, gaining 525/625/2500 AP + 10% HP Health and tethering to nearby champions. Over the duration, deal 100/150/3000 AP magic damage to the closest 3 enemies and restore 100/150/3000 AP health to the closest 2 injured allies.",
+      "Morgana: Moved to a 4-cost Role: Magic Fighter ⇒ Magic Tank Dark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.Mana: 20/60 ⇒ 30/90Attack Speed: .90 ⇒ .65HP: 800 ⇒ 1300Resists: 50 ⇒ 70AD: 50 ⇒ 60Ability Rework: Transform for 3 seconds, gaining 525/625/2500 AP + 10% HP Health and tethering to nearby champions. Over the duration, deal 100/150/3000 AP magic damage to the closest 3 enemies and restore 100/150/3000 AP health to the closest 2 injured allies.",
       "Moved to a 4-cost",
       "Role: Magic Fighter ⇒ Magic Tank",
       "Dark Lady: Your team gains 4% Durability, increased to 10% when Morgana is in her Dark Form.",
@@ -263,7 +263,7 @@
       "Vampiric Vitality II Removed",
       "Edge of Night Missing Health Heal: 30% ⇒ 20%",
       "Horizon Focus Disabled",
-      "Titanic Hydra: Xayah will only trigger the AoE effect on her primary basic attack."
+      "Titanic Hydra: Xayah will only trigger the Ao E effect on her primary basic attack."
     ],
     "augments": [
       "Concentration: Conduit Abilities last 25% to 50% longer, depending on the Ability. Gain a Zoe and a Mordekaiser.",
@@ -291,7 +291,7 @@
       "Vampiric Vitality II Removed",
       "Edge of Night Missing Health Heal: 30% ⇒ 20%",
       "Horizon Focus Disabled",
-      "Titanic Hydra: Xayah will only trigger the AoE effect on her primary basic attack.",
+      "Titanic Hydra: Xayah will only trigger the Ao E effect on her primary basic attack.",
       "Buried Treasures Rounds: 5 ⇒ 4",
       "Cosmic Restart Rerolls: 11 ⇒ 8",
       "Exclusive Customization I Gold: 10 ⇒ 7",
@@ -313,8 +313,8 @@
     "items": [
       "Edge of Night Missing Health Heal: 30% ⇒ 20%",
       "Horizon Focus Disabled",
-      "Titanic Hydra: Xayah will only trigger the AoE effect on her primary basic attack."
+      "Titanic Hydra: Xayah will only trigger the Ao E effect on her primary basic attack."
     ]
   },
-  "updatedAt": "2026-05-14T22:04:26.181Z"
+  "updatedAt": "2026-05-14T22:42:00.111Z"
 }

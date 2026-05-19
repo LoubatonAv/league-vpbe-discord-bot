@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "hash": "1598d152ff94402a543f75512203bf5858d3286d2d4dfb4d54d24b6bbdc724f2",
+=======
+  "hash": "4fa5dbdd170e706d20e8da005b092e4debb23f4cff42661ba0c2a4c6fe1cf0a1",
+>>>>>>> b7ab80d (fixed newest skins)
   "skins": [
     {
       "name": "PROJECT: Quinn",
@@ -7,7 +11,11 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/quinn",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Quinn_24.jpg?image=q_auto:good,f_png&v=1779135667",
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Quinn_24.jpg?image=q_auto:good,f_webp&v=1779208767",
+>>>>>>> b7ab80d (fixed newest skins)
       "source": "OP.GG"
     },
     {
@@ -16,7 +24,11 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/ivern",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ivern_31.jpg?image=q_auto:good,f_png&v=1779135667",
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Ivern_31.jpg?image=q_auto:good,f_webp&v=1779208767",
+>>>>>>> b7ab80d (fixed newest skins)
       "source": "OP.GG"
     },
     {
@@ -25,7 +37,11 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/warwick/urfwick",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Warwick_9.jpg?image=q_auto:good,f_png&v=1779135667",
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Warwick_9.jpg?image=q_auto:good,f_webp&v=1779208767",
+>>>>>>> b7ab80d (fixed newest skins)
       "source": "OP.GG"
     },
     {
@@ -34,7 +50,11 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/vayne",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Vayne_67.jpg?image=q_auto:good,f_png&v=1779135667",
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Vayne_67.jpg?image=q_auto:good,f_webp&v=1779208767",
+>>>>>>> b7ab80d (fixed newest skins)
       "source": "OP.GG"
     },
     {
@@ -43,7 +63,11 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/annie",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Annie_59.jpg?image=q_auto:good,f_png&v=1779135667",
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Annie_59.jpg?image=q_auto:good,f_webp&v=1779208767",
+>>>>>>> b7ab80d (fixed newest skins)
       "source": "OP.GG"
     },
     {
@@ -52,6 +76,7 @@
       "tier": "Unknown",
       "price": null,
       "href": "https://op.gg/lol/skins/kindred",
+<<<<<<< HEAD
       "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Kindred_45.jpg?image=q_auto:good,f_png&v=1779135667",
       "source": "OP.GG"
     },
@@ -273,4 +298,11 @@
     }
   ],
   "updatedAt": "2026-05-19T11:55:19.898Z"
+=======
+      "image": "https://opgg-static.akamaized.net/meta/images/lol/16.10.1/champion/loading/Kindred_45.jpg?image=q_auto:good,f_webp&v=1779208767",
+      "source": "OP.GG"
+    }
+  ],
+  "updatedAt": "2026-05-19T20:34:46.255Z"
+>>>>>>> b7ab80d (fixed newest skins)
 }

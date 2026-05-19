@@ -175,27 +175,20 @@ async function fetchNewestSkins() {
       height: 1600,
     },
     userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 League Skin Newest Tracker/1.0",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    extraHTTPHeaders: {
+      "Accept-Language": "en-US,en;q=0.9",
+    },
   });
 
   try {
     await page.goto(SKINS_URL, {
       waitUntil: "domcontentloaded",
-      timeout: 60000,
+      timeout: 45000,
     });
 
-    await page
-      .waitForLoadState("load", {
-        timeout: 30000,
-      })
-      .catch(() => {
-        console.log("Page load state timeout, continuing anyway...");
-      });
+    await page.waitForTimeout(6000);
 
-    // Give client-rendered content time to appear.
-    await page.waitForTimeout(4000);
-
-    // Try to scroll a bit so lazy-loaded skin cards/images appear.
     for (let i = 0; i < 4; i++) {
       await page.mouse.wheel(0, 900);
       await page.waitForTimeout(800);
@@ -218,7 +211,6 @@ async function fetchNewestSkins() {
       }
 
       const selectors = ["a", "article", "li", "[role='listitem']", "div"];
-
       const nodes = Array.from(document.querySelectorAll(selectors.join(",")));
 
       const cards = [];
@@ -256,9 +248,16 @@ async function fetchNewestSkins() {
       return cards;
     });
 
+    console.log("Raw cards:", rawCards.length);
+    console.log(
+      "First raw cards:",
+      JSON.stringify(rawCards.slice(0, 5), null, 2),
+    );
+
     if (process.env.DEBUG_OPGG_SKINS === "true") {
       fs.writeFileSync(DEBUG_JSON_FILE, JSON.stringify(rawCards, null, 2));
       fs.writeFileSync(DEBUG_HTML_FILE, html);
+
       await page.screenshot({
         path: DEBUG_SCREENSHOT_FILE,
         fullPage: true,
@@ -266,6 +265,12 @@ async function fetchNewestSkins() {
     }
 
     const skins = parseCards(rawCards);
+
+    console.log("Parsed skins:", skins.length);
+    console.log(
+      "First parsed skins:",
+      JSON.stringify(skins.slice(0, 10), null, 2),
+    );
 
     return {
       skins,
@@ -283,6 +288,12 @@ function parseCards(rawCards = []) {
   const skins = [];
 
   for (const card of rawCards) {
+    const href = card.href || "";
+
+    // חשוב:
+    // OP.GG מייצר הרבה cards כלליים עם /null.
+    // אלה בדרך כלל לא קישור ספציפי לסקין ולכן גורמים ל-false positives.
+
     const lines = [...(card.lines || []), card.imgAlt]
       .map(cleanLine)
       .filter((line) => line && !isNoiseLine(line));
@@ -291,21 +302,34 @@ function parseCards(rawCards = []) {
 
     if (uniqueLines.length === 0) continue;
 
+    const joinedLines = uniqueLines.join(" ");
+
+    // Skip sale / discount cards.
+    // דוגמאות: 25%, 27%, ~5/25
+    if (/%|~\d+\/\d+/.test(joinedLines)) {
+      continue;
+    }
+
     const tierLine = uniqueLines.find((line) => tierRegex.test(line));
     const tier = tierLine || "Unknown";
 
-    const rpLine = uniqueLines.find((line) => /\d+\s*rp/i.test(line));
+    const rpLine = uniqueLines.find(
+      (line) => /\d+\s*rp/i.test(line) || /^\d+$/.test(line),
+    );
     let price = null;
 
     if (rpLine) {
-      const match = rpLine.match(/(\d+)\s*rp/i);
+      const match = rpLine.match(/(\d+)/);
       if (match) price = Number(match[1]);
     }
 
     const candidateLines = uniqueLines.filter((line) => {
       if (!line) return false;
       if (tierRegex.test(line)) return false;
+      if (/^\d+$/.test(line)) return false;
       if (/\d+\s*rp/i.test(line)) return false;
+      if (/^\d+%$/.test(line)) return false;
+      if (/^~\d+\/\d+$/.test(line)) return false;
       if (/no price data/i.test(line)) return false;
       if (/newest|release|skin|champion|search|ranking|select/i.test(line)) {
         return false;
@@ -314,25 +338,15 @@ function parseCards(rawCards = []) {
       return true;
     });
 
-    /*
-      Important:
-      OP.GG often gives us parent containers like:
-      ["PROJECT: Quinn", "Rain Shepherd Ivern"]
-      Those are NOT one skin with champion=Rain Shepherd Ivern.
-      They are two separate child cards grouped together.
-      So if there are multiple candidate names, we skip this parent container.
-    */
     if (candidateLines.length !== 1) {
       continue;
     }
 
-    let name = normalizeText(candidateLines[0]);
+    const name = normalizeText(candidateLines[0]);
 
     if (!name) continue;
     if (name.length > 80) continue;
     if (tierRegex.test(name)) continue;
-
-    // Avoid obvious non-skin fragments.
     if (/select|search|ranking|advertisement/i.test(name)) continue;
 
     skins.push({
@@ -340,13 +354,13 @@ function parseCards(rawCards = []) {
       champion: "Unknown",
       tier,
       price,
-      href: normalizeSkinUrl(card.href),
+      href: normalizeSkinUrl(href),
       image: card.imgSrc || null,
       source: "OP.GG",
     });
   }
 
-  return dedupeSkins(skins).slice(0, 30);
+  return dedupeSkins(skins).slice(0, 6);
 }
 
 // ================= FORMAT =================
@@ -354,7 +368,6 @@ function parseCards(rawCards = []) {
 function formatSkinLine(skin) {
   const tierPart =
     skin.tier && skin.tier !== "Unknown" ? ` | ${skin.tier}` : "";
-
   const pricePart = skin.price ? ` | ${skin.price} RP` : "";
 
   return `• ${skin.name}${tierPart}${pricePart}`;
@@ -368,7 +381,6 @@ function formatDiscordMessage({ added }) {
   for (const skin of added) {
     const tierPart =
       skin.tier && skin.tier !== "Unknown" ? ` — ${skin.tier}` : "";
-
     msg += `• ${skin.name}${tierPart}\n`;
   }
 
@@ -377,7 +389,7 @@ function formatDiscordMessage({ added }) {
 
 // ================= DISCORD =================
 
-async function sendToDiscord(message, skins = []) {
+async function sendToDiscord(message) {
   if (!DISCORD_WEBHOOK_URL) {
     console.log("No Discord webhook found");
     return;
@@ -454,6 +466,17 @@ async function main() {
     );
   }
 
+  const suspiciousNames = skins.filter(
+    (s) =>
+      s.name.length < 4 ||
+      /search|ranking|tier|select|advertisement/i.test(s.name),
+  );
+
+  if (suspiciousNames.length > 0) {
+    console.log("Suspicious parsed names:");
+    console.log(suspiciousNames);
+  }
+
   for (const skin of skins.slice(0, 20)) {
     console.log(formatSkinLine(skin));
     console.log(`  href: ${skin.href}`);
@@ -507,7 +530,7 @@ async function main() {
   console.log("\n===============================\n");
 
   if (SEND_TO_DISCORD) {
-    await sendToDiscord(message, diff.added);
+    await sendToDiscord(message);
     console.log("Sent newest skin update to Discord");
   } else {
     console.log("Dry run only");

@@ -1,5 +1,5 @@
 {
-  "hash": "4e245056ec48a5c9be45649030afe9903e25164303d91493754193ff2445f3a5",
+  "hash": "7bcc525ef242775b268f2a7d586cf086c65e0231ddfa6d0c224e2ce31f5f233c",
   "title": "Teamfight Tactics patch 17.3",
   "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-3",
   "sections": {
@@ -7,7 +7,8 @@
       "Aurelion Sol’s ability no longer exceeds its visual range",
       "New Recruit ( Augment) now correctly provides plus one to team size",
       "Loot Singularity (Augment) incorrectly can grant a spatula as a reward",
-      "Retribution (Augment) does not apply its 15% bonus Crit Chance"
+      "Retribution (Augment) does not apply its 15% bonus Crit Chance",
+      "Arbiter no longer generates more rewards than intended"
     ],
     "systems": [
       "Kayle’s Boon: HP Per Item: 15 ⇒ 10",
@@ -316,5 +317,5 @@
       "Titanic Hydra: Xayah will only trigger the Ao E effect on her primary basic attack."
     ]
   },
-  "updatedAt": "2026-05-14T22:42:00.111Z"
+  "updatedAt": "2026-05-20T11:50:19.562Z"
 }

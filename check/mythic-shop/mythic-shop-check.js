@@ -56,19 +56,28 @@ function createHash(payload) {
 
 // ================= FETCH =================
 
-async function fetchHtml() {
-  const res = await fetch(MYTHIC_URL, {
+async function fetchHtml(url) {
+  const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 League Mythic Shop Tracker/1.0",
-      Accept: "text/html,application/xhtml+xml",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
     },
   });
+
+  if (res.status === 403) {
+    console.log(
+      "⚠️ Mobalytics blocked the request with 403. Skipping mythic shop check.",
+    );
+    return null;
+  }
 
   if (!res.ok) {
     throw new Error(`Mobalytics Mythic Shop page failed: ${res.status}`);
   }
 
-  return res.text();
+  return await res.text();
 }
 
 // ================= PARSE =================
@@ -398,7 +407,23 @@ async function main() {
   console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
   console.log(`STATE_FILE = ${STATE_FILE}`);
 
-  const html = await fetchHtml();
+  const html = await fetchHtml(MYTHIC_URL);
+
+  if (!html) {
+    const warning =
+      "⚠️ **Mythic Shop Check Skipped**\n\n" +
+      "Mobalytics returned 403, probably blocking GitHub Actions.\n" +
+      "State was not changed.";
+
+    console.log(warning);
+
+    if (SEND_TO_DISCORD) {
+      await sendToDiscord(warning);
+    }
+
+    return;
+  }
+
   const mythic = parseMythicShop(html);
 
   console.log(`Title: ${mythic.title}`);
@@ -429,13 +454,17 @@ async function main() {
       rotationTitle: mythic.rotationTitle,
       items: mythic.items,
       updatedAt: new Date().toISOString(),
-
-      emporium: {
-        status: currentEmporiumStatus,
-        lastChangedAt: new Date().toISOString(),
+      emporium: state.emporium || {
+        status: "UNKNOWN",
+        lastChangedAt: null,
       },
     });
 
+    return;
+  }
+
+  if (state.hash === newHash) {
+    console.log("No Mythic Shop changes detected");
     return;
   }
 
@@ -463,6 +492,10 @@ async function main() {
     rotationTitle: mythic.rotationTitle,
     items: mythic.items,
     updatedAt: new Date().toISOString(),
+    emporium: state.emporium || {
+      status: "UNKNOWN",
+      lastChangedAt: null,
+    },
   });
 }
 

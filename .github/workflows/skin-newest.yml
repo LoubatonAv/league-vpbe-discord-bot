@@ -42,7 +42,7 @@ jobs:
           SKIN_SALE_WEBHOOK_URL: ${{ secrets.SKIN_SALE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
-          FORCE_SEND: "true"
+
 
       - name: Save newest skins state
         if: always()

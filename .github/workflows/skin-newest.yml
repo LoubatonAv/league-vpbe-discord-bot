@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   skin-newest:
@@ -27,20 +27,25 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
+      - name: Restore newest skins state
+        uses: actions/cache/restore@v4
+        with:
+          path: check/skin-newest/skin-newest-state.json
+          key: skin-newest-state-${{ github.run_id }}
+          restore-keys: |
+            skin-newest-state-
+
       - name: Run newest skins checker
         run: npm run skin:newest
         env:
+          SKIN_NEWEST_WEBHOOK_URL: ${{ secrets.SKIN_NEWEST_WEBHOOK_URL }}
           SKIN_SALE_WEBHOOK_URL: ${{ secrets.SKIN_SALE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
 
-      - name: Commit newest skins state
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          git add check/skin-newest/skin-newest-state.json || true
-          git commit -m "update newest skins state" || echo "No newest skins state changes"
-
-          git pull --rebase
-          git push
+      - name: Save newest skins state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: check/skin-newest/skin-newest-state.json
+          key: skin-newest-state-${{ github.run_id }}

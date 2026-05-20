@@ -1,3 +1,4 @@
 node_modules
 .env
 check/mythic-shop/mythic-shop-state.json
+check/skin-newest/skin-newest-state.json

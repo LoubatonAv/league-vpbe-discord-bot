@@ -10,7 +10,8 @@ const STATE_FILE = path.join(__dirname, "mythic-shop-state.json");
 const DISCORD_WEBHOOK_URL = process.env.MYTHIC_SHOP_WEBHOOK_URL;
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
-const MYTHIC_URL = "https://mobalytics.gg/lol/guides/mythic-shop-rotation";
+const MYTHIC_URL =
+  "https://leagueoflegends.fandom.com/wiki/Mythic_Shop_Rotation";
 
 // ================= STATE =================
 
@@ -327,7 +328,54 @@ function formatDiscordMessage({ mythic, diff }) {
 
   return msg.trim();
 }
+function parseMythicShopFromWiki(html) {
+  const $ = cheerio.load(html);
 
+  const title = normalizeText($("h1").first().text()) || "Mythic Shop Rotation";
+
+  const firstTableText = cleanHtmlText(
+    $(".mw-parser-output").first().find("table").first().text(),
+  );
+
+  const items = [];
+
+  const regex =
+    /(?:^|\s)(\d{2,3})\s+(?:File:.*?\s+)?Patch\s+\d+\.\d+(?:\s*-\s*\d+\.\d+)?\s*([A-Z][A-Za-z0-9:'’&().+/\-\s!]+?)(?=\s+\d{1,3}\s+(?:File:.*?\s+)?Patch\s+\d+\.\d+|$)/gi;
+
+  let match;
+
+  while ((match = regex.exec(firstTableText)) !== null) {
+    const price = Number(match[1]);
+
+    let name = normalizeText(match[2])
+      .replace(/\(\+ Border and Icon\)/gi, "")
+      .replace(/\(\+ Border\)/gi, "")
+      .replace(/\+ Border and Icon/gi, "")
+      .replace(/\+ Border/gi, "")
+      .trim();
+
+    if (!name || name.length < 3) continue;
+
+    items.push({
+      type: classifyItem(name),
+      name,
+      price,
+    });
+  }
+
+  const unique = new Map();
+
+  for (const item of items) {
+    const key = `${item.type}|${item.name}|${item.price}`;
+    unique.set(key, item);
+  }
+
+  return {
+    title,
+    rotationTitle: "Current Mythic Shop Rotation",
+    items: [...unique.values()],
+  };
+}
 // ================= DISCORD =================
 
 function splitDiscordMessage(text, maxLength = 1900) {
@@ -424,7 +472,7 @@ async function main() {
     return;
   }
 
-  const mythic = parseMythicShop(html);
+  const mythic = parseMythicShopFromWiki(html);
 
   console.log(`Title: ${mythic.title}`);
   console.log(`Rotation: ${mythic.rotationTitle || "Unknown"}`);

@@ -2,11 +2,11 @@ name: League Mythic Shop Updates
 
 on:
   schedule:
-    - cron: "30 1 */6 * *"
+    - cron: "0 14 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   mythic-shop:
@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Restore Mythic Shop state
+        uses: actions/cache/restore@v4
+        with:
+          path: check/mythic-shop/mythic-shop-state.json
+          key: mythic-shop-state-${{ github.run_id }}
+          restore-keys: |
+            mythic-shop-state-
+
       - name: Run Mythic Shop checker
         run: npm run mythic-shop
         env:
@@ -31,16 +39,9 @@ jobs:
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
 
-      - name: Commit Mythic Shop state
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          if [ -f check/mythic-shop/mythic-shop-state.json ]; then
-            git add check/mythic-shop/mythic-shop-state.json
-            git commit -m "update mythic shop state" || echo "No mythic shop state changes"
-            git pull --rebase
-            git push
-          else
-            echo "No mythic shop state file found"
-          fi
+      - name: Save Mythic Shop state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: check/mythic-shop/mythic-shop-state.json
+          key: mythic-shop-state-${{ github.run_id }}

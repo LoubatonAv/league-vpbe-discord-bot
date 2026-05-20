@@ -8,39 +8,44 @@ const cheerio = require("cheerio");
 const STATE_FILE = path.join(__dirname, "mythic-shop-state.json");
 
 const DISCORD_WEBHOOK_URL = process.env.MYTHIC_SHOP_WEBHOOK_URL;
+const ERROR_WEBHOOK_URL = process.env.ERROR_WEBHOOK_URL;
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
-const MYTHIC_URL =
+const LOLDB_MYTHIC_URL = "https://loldb.info/mythic-shop";
+const WIKI_MYTHIC_URL =
   "https://leagueoflegends.fandom.com/wiki/Mythic_Shop_Rotation";
+
+const MYTHIC_URL = LOLDB_MYTHIC_URL;
 
 // ================= STATE =================
 
+function getDefaultState() {
+  return {
+    hash: null,
+    title: null,
+    rotationTitle: null,
+    items: [],
+    upcomingItems: [],
+    updatedAt: null,
+    emporium: {
+      status: "UNKNOWN",
+      lastChangedAt: null,
+    },
+  };
+}
+
 function loadState() {
   if (!fs.existsSync(STATE_FILE)) {
-    return {
-      hash: null,
-      title: null,
-      rotationTitle: null,
-      items: [],
-      updatedAt: null,
-    };
+    return getDefaultState();
   }
 
   try {
-    return JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
-  } catch {
     return {
-      hash: null,
-      title: null,
-      rotationTitle: null,
-      items: [],
-      updatedAt: null,
-
-      emporium: {
-        status: "UNKNOWN",
-        lastChangedAt: null,
-      },
+      ...getDefaultState(),
+      ...JSON.parse(fs.readFileSync(STATE_FILE, "utf8")),
     };
+  } catch {
+    return getDefaultState();
   }
 }
 
@@ -53,6 +58,23 @@ function createHash(payload) {
     .createHash("sha256")
     .update(JSON.stringify(payload))
     .digest("hex");
+}
+
+function itemForHash(item) {
+  return {
+    section: item.section || "Current",
+    type: item.type,
+    name: item.name,
+    price: item.price,
+  };
+}
+
+function buildHashPayload(mythic) {
+  return {
+    rotationTitle: mythic.rotationTitle,
+    items: mythic.items.map(itemForHash),
+    upcomingItems: (mythic.upcomingItems || []).map(itemForHash),
+  };
 }
 
 // ================= FETCH =================
@@ -68,28 +90,25 @@ async function fetchHtml(url) {
   });
 
   if (res.status === 403) {
-    console.log(
-      "⚠️ Mobalytics blocked the request with 403. Skipping mythic shop check.",
-    );
-    return null;
+    throw new Error(`Source blocked request with 403: ${url}`);
   }
 
   if (!res.ok) {
-    throw new Error(`Mobalytics Mythic Shop page failed: ${res.status}`);
+    throw new Error(`Source failed ${res.status}: ${url}`);
   }
 
   return await res.text();
 }
 
-// ================= PARSE =================
+// ================= TEXT HELPERS =================
 
 function normalizeText(text = "") {
-  return text.replace(/\s+/g, " ").trim();
+  return String(text).replace(/\s+/g, " ").trim();
 }
 
 function cleanHtmlText(text = "") {
   return normalizeText(
-    text
+    String(text)
       .replace(/\\u002F/g, "/")
       .replace(/&quot;/g, '"')
       .replace(/&#x27;/g, "'")
@@ -97,7 +116,22 @@ function cleanHtmlText(text = "") {
   );
 }
 
-function classifyItem(name = "") {
+function getTextBetween(text, start, end) {
+  const startIndex = text.indexOf(start);
+
+  if (startIndex === -1) return "";
+
+  const fromStart = text.slice(startIndex + start.length);
+  const endIndex = fromStart.indexOf(end);
+
+  if (endIndex === -1) return fromStart;
+
+  return fromStart.slice(0, endIndex);
+}
+
+// ================= CLASSIFY =================
+
+function classifyItem(name = "", price = null) {
   const n = name.toLowerCase();
 
   if (n.includes("chroma")) return "chroma";
@@ -105,112 +139,243 @@ function classifyItem(name = "") {
   if (n.includes("emote")) return "emote";
   if (n.includes("ward")) return "ward";
   if (n.includes("nexus finisher")) return "finisher";
+
   if (n.includes("prestige")) return "prestige";
   if (n.includes("hextech")) return "mythic";
   if (n.includes("ashen")) return "mythic";
   if (n.includes("crystalis")) return "mythic";
   if (n.includes("soulstealer")) return "mythic";
 
+  // LoLDB sometimes strips item category text from the visible name.
+  // These price-based guesses are only used when the name itself is ambiguous.
+  if (price === 5) return "icon";
+  if (price === 25) return "emote";
+  if (price === 35 || price === 40) return "chroma";
+  if (price === 50) return "ward";
+  if (price === 125 || price === 150 || price === 200 || price === 250) {
+    return "skin";
+  }
+
   return "skin";
 }
 
-function parseMythicShop(html) {
+// ================= LOLDB CURRENT PARSER =================
+
+function parseLolDbMythicShop(html) {
   const $ = cheerio.load(html);
+
+  const title = normalizeText($("h1").first().text()) || "Mythic Shop Rotation";
 
   const bodyText = cleanHtmlText($("body").text());
 
-  const title =
-    normalizeText($("h1").first().text()) || "LoL Mythic Shop Rotation";
-
-  const rotationTitleMatch = bodyText.match(
-    /New Rotation\s*-\s*Until\s*([A-Za-z0-9\s]+?)(?:Prestige|Hextech|Soulstealer|Crystalis)/i,
+  const shopText = getTextBetween(
+    bodyText,
+    "Check out the current Mythic Shop rotation",
+    "Categories",
   );
 
-  const rotationTitle = rotationTitleMatch
-    ? `Until ${normalizeText(rotationTitleMatch[1])}`
-    : null;
-
-  const items = [];
-
-  const regex =
-    /([A-Z][A-Za-z0-9:'’&().+\-/\s]+?)\s*[-–—]?\s*(\d+)\s*(?:ME|Mythic Essence)/gi;
-  let match;
-
-  while ((match = regex.exec(bodyText)) !== null) {
-    let name = normalizeText(match[1]);
-    const price = Number(match[2]);
-
-    // ================= CLEAN =================
-
-    name = name
-      .replace(/GuideCountersCombos/gi, "")
-      .replace(
-        /make sure you head over to our Mobalytics Champion Page\.?/gi,
-        "",
-      )
-      .replace(/New Rotation\s*-\s*Until\s*[A-Za-z0-9\s]+/gi, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    // ================= FILTER BAD MATCHES =================
-
-    if (!name) continue;
-
-    if (name.length < 4) continue;
-
-    if (
-      name.includes("Patch") ||
-      name.includes("Mobalytics") ||
-      name.includes("Champion Page") ||
-      name.includes("Guides") ||
-      name.includes("Counters") ||
-      name.includes("Combos")
-    ) {
-      continue;
-    }
-
-    // ================= VALID ITEM CHECK =================
-
-    const validPrefixes = [
-      "Prestige",
-      "Hextech",
-      "Ashen",
-      "Crystalis",
-      "Soulstealer",
-      "Mythic",
-    ];
-
-    const isValid = validPrefixes.some((prefix) => name.startsWith(prefix));
-
-    if (!isValid) continue;
-
-    items.push({
-      type: classifyItem(name),
-      name,
-      price,
-    });
+  if (!shopText) {
+    return {
+      source: "LoLDB",
+      title,
+      rotationTitle: "Current Mythic Shop Rotation",
+      items: [],
+      upcomingItems: [],
+    };
   }
 
-  // ================= DEDUPE =================
+  const sectionRanges = buildLolDbSectionRanges(shopText);
+
+  const timerRegex =
+    /Expires in\s+((?:\d+\s*(?:days?|day|hours?|hour|hrs?|hr|h|minutes?|minute|mins?|min|m)\s*)+)/gi;
+
+  const timerMatches = [...shopText.matchAll(timerRegex)];
+  const items = [];
+
+  for (let i = 0; i < timerMatches.length; i++) {
+    const match = timerMatches[i];
+
+    const expiresIn = normalizeText(match[1]);
+    const segmentStart = match.index + match[0].length;
+    const segmentEnd =
+      i + 1 < timerMatches.length ? timerMatches[i + 1].index : shopText.length;
+
+    let segment = normalizeText(shopText.slice(segmentStart, segmentEnd));
+
+    // Section-level timer has no item after it.
+    if (!segment) continue;
+
+    // Last item before next section can look like: Dat Boi25Bi-Weekly
+    segment = segment
+      .replace(/(Featured|Bi-Weekly|Weekly|Daily|Categories)$/i, "")
+      .trim();
+
+    if (!segment) continue;
+
+    // LoLDB text can be compressed like: Prestige Soul Fighter Shaco150
+    const itemMatch = segment.match(/^(.+?)(\d{1,3})$/);
+
+    if (!itemMatch) continue;
+
+    let name = normalizeText(itemMatch[1]);
+    const price = Number(itemMatch[2]);
+
+    name = name
+      .replace(/\s+(Skin|Chroma|Icon|Emote|Ward|Nexus Finisher)$/i, "")
+      .trim();
+
+    if (!name || name.length < 3 || !price) continue;
+
+    const section = findLolDbSection(match.index, sectionRanges);
+    const type = classifyItem(name, price);
+
+    items.push({
+      section,
+      type,
+      name,
+      price,
+      expiresIn,
+    });
+  }
 
   const unique = new Map();
 
   for (const item of items) {
-    const key = `${item.type}|${item.name}|${item.price}`;
+    const key = `${item.section}|${item.type}|${item.name}|${item.price}`;
     unique.set(key, item);
   }
 
   return {
+    source: "LoLDB",
     title,
-    rotationTitle,
+    rotationTitle: "Current Mythic Shop Rotation",
     items: [...unique.values()],
+    upcomingItems: [],
   };
+}
+
+function buildLolDbSectionRanges(text) {
+  const featuredIndex = text.indexOf("Featured");
+  const biWeeklyIndex =
+    featuredIndex === -1 ? -1 : text.indexOf("Bi-Weekly", featuredIndex + 1);
+
+  const weeklyIndex =
+    biWeeklyIndex === -1
+      ? -1
+      : text.indexOf("Weekly", biWeeklyIndex + "Bi-Weekly".length);
+
+  const dailyIndex =
+    weeklyIndex === -1
+      ? -1
+      : text.indexOf("Daily", weeklyIndex + "Weekly".length);
+
+  const categoriesIndex =
+    dailyIndex === -1
+      ? text.length
+      : text.indexOf("Categories", dailyIndex + "Daily".length);
+
+  const raw = [
+    { name: "Featured", index: featuredIndex },
+    { name: "Bi-Weekly", index: biWeeklyIndex },
+    { name: "Weekly", index: weeklyIndex },
+    { name: "Daily", index: dailyIndex },
+    {
+      name: "Categories",
+      index: categoriesIndex === -1 ? text.length : categoriesIndex,
+    },
+  ].filter((section) => section.index !== -1);
+
+  const ranges = [];
+
+  for (let i = 0; i < raw.length - 1; i++) {
+    ranges.push({
+      name: raw[i].name,
+      start: raw[i].index,
+      end: raw[i + 1].index,
+    });
+  }
+
+  return ranges;
+}
+
+function findLolDbSection(index, ranges) {
+  const section = ranges.find(
+    (range) => index >= range.start && index < range.end,
+  );
+
+  return section ? section.name : "Current";
+}
+
+// ================= FANDOM UPCOMING PARSER =================
+
+function parseFandomMythicShop(html) {
+  const $ = cheerio.load(html);
+
+  const title = normalizeText($("h1").first().text()) || "Mythic Shop Rotation";
+
+  const tables = $(".mw-parser-output").first().find("table");
+
+  const currentItems = parseFandomTable($, tables.eq(0), "Current");
+  const upcomingItems = parseFandomTable($, tables.eq(1), "Upcoming");
+
+  return {
+    source: "League Wiki",
+    title,
+    rotationTitle: "Current Mythic Shop Rotation",
+    items: currentItems,
+    upcomingItems,
+  };
+}
+
+function parseFandomTable($, table, section) {
+  if (!table || !table.length) return [];
+
+  const tableText = cleanHtmlText(table.text());
+
+  const prices = [];
+  const priceRegex =
+    /(?:^|[^\d])(\d{1,3})\s+(?:File:.*?\s+)?Patch\s+\d+\.\d+(?:\s*-\s*\d+\.\d+)?/gi;
+
+  let priceMatch;
+
+  while ((priceMatch = priceRegex.exec(tableText)) !== null) {
+    prices.push(Number(priceMatch[1]));
+  }
+
+  const names = table
+    .find("h2")
+    .map((_, h2) =>
+      normalizeText($(h2).text())
+        .replace(/\[edit\]/gi, "")
+        .replace(/\(\+ Border and Icon\)/gi, "")
+        .replace(/\(\+ Border\)/gi, "")
+        .replace(/\+ Border and Icon/gi, "")
+        .replace(/\+ Border/gi, "")
+        .trim(),
+    )
+    .get()
+    .filter(Boolean);
+
+  const items = [];
+  const count = Math.min(names.length, prices.length);
+
+  for (let i = 0; i < count; i++) {
+    items.push({
+      section,
+      type: classifyItem(names[i], prices[i]),
+      name: names[i],
+      price: prices[i],
+      expiresIn: null,
+    });
+  }
+
+  return items;
 }
 
 // ================= DIFF =================
 
 function getItemKey(item) {
-  return `${item.type}|${item.name}|${item.price}`;
+  return `${item.section || "Current"}|${item.type}|${item.name}|${item.price}`;
 }
 
 function getDiff(oldItems = [], newItems = []) {
@@ -231,7 +396,7 @@ function getDiff(oldItems = [], newItems = []) {
   return { added, removed };
 }
 
-// ================= FORMAT =================
+// ================= FORMAT HELPERS =================
 
 function emojiForType(type) {
   if (type === "prestige") return "✨";
@@ -252,10 +417,19 @@ function titleForType(type) {
   if (type === "emote") return "😄 Emotes";
   if (type === "ward") return "👁️ Ward Skins";
   if (type === "finisher") return "💥 Nexus Finishers";
-  return "🔹 Other Skins";
+  return "🔹 Other Items";
 }
 
-function groupByType(items) {
+function emojiForSection(section) {
+  if (section === "Featured") return "📌";
+  if (section === "Bi-Weekly") return "🗓️";
+  if (section === "Weekly") return "📆";
+  if (section === "Daily") return "⏰";
+  if (section === "Upcoming") return "🔮";
+  return "📦";
+}
+
+function groupByType(items = []) {
   const grouped = {};
 
   for (const item of items) {
@@ -266,43 +440,71 @@ function groupByType(items) {
   return grouped;
 }
 
-function formatItemLine(item) {
-  return `• ${item.name} — ${item.price} ME`;
+function groupBySection(items = []) {
+  const grouped = {};
+
+  for (const item of items) {
+    const section = item.section || "Current";
+
+    if (!grouped[section]) grouped[section] = [];
+    grouped[section].push(item);
+  }
+
+  return grouped;
 }
+
+function getMostCommonExpiresIn(items = []) {
+  const counts = {};
+
+  for (const item of items) {
+    if (!item.expiresIn) continue;
+    counts[item.expiresIn] = (counts[item.expiresIn] || 0) + 1;
+  }
+
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+}
+
+function formatItemLine(item) {
+  const expires = item.expiresIn ? ` — expires in ${item.expiresIn}` : "";
+  return `• ${item.name} — ${item.price} ME${expires}`;
+}
+
+function formatItemLineWithoutRepeatedExpiry(item, sectionExpiresIn) {
+  const shouldShowExpiry =
+    item.expiresIn && item.expiresIn !== sectionExpiresIn;
+
+  const expires = shouldShowExpiry ? ` — expires in ${item.expiresIn}` : "";
+
+  return `• ${item.name} — ${item.price} ME${expires}`;
+}
+
+function formatGroupedItems(items = [], typeOrder) {
+  let msg = "";
+
+  const grouped = groupByType(items);
+
+  for (const type of typeOrder) {
+    const typeItems = grouped[type];
+    if (!typeItems || !typeItems.length) continue;
+
+    msg += `${titleForType(type)}\n`;
+
+    for (const item of typeItems) {
+      msg += `${formatItemLine(item)}\n`;
+    }
+
+    msg += `\n`;
+  }
+
+  return msg;
+}
+
+// ================= FORMAT DISCORD =================
 
 function formatDiscordMessage({ mythic, diff }) {
   let msg = "";
 
-  msg += `💎 **League Mythic Shop Rotation Updated**\n`;
-
-  if (mythic.rotationTitle) {
-    msg += `📅 ${mythic.rotationTitle}\n`;
-  }
-
-  msg += `🔗 <${MYTHIC_URL}>\n\n`;
-
-  if (diff && (diff.added.length || diff.removed.length)) {
-    if (diff.added.length) {
-      msg += `🟢 **Added / Changed**\n`;
-      for (const item of diff.added) {
-        msg += `${emojiForType(item.type)} ${item.name} — ${item.price} ME\n`;
-      }
-      msg += `\n`;
-    }
-
-    if (diff.removed.length) {
-      msg += `🔴 **Removed**\n`;
-      for (const item of diff.removed) {
-        msg += `• ${item.name} — ${item.price} ME\n`;
-      }
-      msg += `\n`;
-    }
-  }
-
-  msg += `📋 **Current Rotation**\n\n`;
-
-  const grouped = groupByType(mythic.items);
-  const order = [
+  const typeOrder = [
     "prestige",
     "mythic",
     "skin",
@@ -313,69 +515,76 @@ function formatDiscordMessage({ mythic, diff }) {
     "finisher",
   ];
 
-  for (const type of order) {
-    const items = grouped[type];
-    if (!items || !items.length) continue;
+  const sectionOrder = ["Featured", "Bi-Weekly", "Weekly", "Daily", "Current"];
 
-    msg += `${titleForType(type)}\n`;
+  msg += `💎 **League Mythic Shop Rotation Updated**\n`;
 
-    for (const item of items) {
-      msg += `${formatItemLine(item)}\n`;
+  if (mythic.rotationTitle) {
+    msg += `📅 ${mythic.rotationTitle}\n`;
+  }
+
+  msg += `🔗 <${MYTHIC_URL}>\n\n`;
+
+  if (diff && (diff.added.length || diff.removed.length)) {
+    msg += `🧾 **Changes Since Last Check**\n\n`;
+
+    if (diff.added.length) {
+      msg += `🟢 **Added / Changed**\n`;
+      for (const item of diff.added) {
+        msg += `${emojiForType(item.type)} ${item.name} — ${item.price} ME`;
+        if (item.expiresIn) msg += ` — expires in ${item.expiresIn}`;
+        if (item.section) msg += ` — ${item.section}`;
+        msg += `\n`;
+      }
+      msg += `\n`;
+    }
+  }
+
+  if (mythic.upcomingItems && mythic.upcomingItems.length) {
+    msg += `🔮 **Upcoming Rotation / Next Known Rotation**\n\n`;
+    msg += formatGroupedItems(mythic.upcomingItems, typeOrder);
+  }
+
+  msg += `📋 **Current Rotation**\n\n`;
+
+  const groupedBySection = groupBySection(mythic.items);
+
+  for (const section of sectionOrder) {
+    const sectionItems = groupedBySection[section];
+    if (!sectionItems || !sectionItems.length) continue;
+
+    const sectionExpiresIn = getMostCommonExpiresIn(sectionItems);
+
+    msg += `${emojiForSection(section)} **${section}**`;
+
+    if (sectionExpiresIn) {
+      msg += ` — expires in ${sectionExpiresIn}`;
     }
 
-    msg += `\n`;
+    msg += `\n\n`;
+
+    const groupedByType = groupByType(sectionItems);
+
+    for (const type of typeOrder) {
+      const typeItems = groupedByType[type];
+      if (!typeItems || !typeItems.length) continue;
+
+      msg += `${titleForType(type)}\n`;
+
+      for (const item of typeItems) {
+        msg += `${formatItemLineWithoutRepeatedExpiry(
+          item,
+          sectionExpiresIn,
+        )}\n`;
+      }
+
+      msg += `\n`;
+    }
   }
 
   return msg.trim();
 }
-function parseMythicShopFromWiki(html) {
-  const $ = cheerio.load(html);
 
-  const title = normalizeText($("h1").first().text()) || "Mythic Shop Rotation";
-
-  const firstTableText = cleanHtmlText(
-    $(".mw-parser-output").first().find("table").first().text(),
-  );
-
-  const items = [];
-
-  const regex =
-    /(?:^|\s)(\d{2,3})\s+(?:File:.*?\s+)?Patch\s+\d+\.\d+(?:\s*-\s*\d+\.\d+)?\s*([A-Z][A-Za-z0-9:'’&().+/\-\s!]+?)(?=\s+\d{1,3}\s+(?:File:.*?\s+)?Patch\s+\d+\.\d+|$)/gi;
-
-  let match;
-
-  while ((match = regex.exec(firstTableText)) !== null) {
-    const price = Number(match[1]);
-
-    let name = normalizeText(match[2])
-      .replace(/\(\+ Border and Icon\)/gi, "")
-      .replace(/\(\+ Border\)/gi, "")
-      .replace(/\+ Border and Icon/gi, "")
-      .replace(/\+ Border/gi, "")
-      .trim();
-
-    if (!name || name.length < 3) continue;
-
-    items.push({
-      type: classifyItem(name),
-      name,
-      price,
-    });
-  }
-
-  const unique = new Map();
-
-  for (const item of items) {
-    const key = `${item.type}|${item.name}|${item.price}`;
-    unique.set(key, item);
-  }
-
-  return {
-    title,
-    rotationTitle: "Current Mythic Shop Rotation",
-    items: [...unique.values()],
-  };
-}
 // ================= DISCORD =================
 
 function splitDiscordMessage(text, maxLength = 1900) {
@@ -399,7 +608,7 @@ function splitDiscordMessage(text, maxLength = 1900) {
 
 async function sendToDiscord(message) {
   if (!DISCORD_WEBHOOK_URL) {
-    console.log("No DISCORD_WEBHOOK_URL found");
+    console.log("No MYTHIC_SHOP_WEBHOOK_URL found");
     return;
   }
 
@@ -421,11 +630,8 @@ async function sendToDiscord(message) {
   }
 }
 
-// ================= MAIN =================
 async function sendErrorToDiscord(error) {
-  const webhook = process.env.ERROR_WEBHOOK_URL;
-
-  if (!webhook) {
+  if (!ERROR_WEBHOOK_URL) {
     console.log("No ERROR_WEBHOOK_URL found");
     return;
   }
@@ -436,7 +642,7 @@ async function sendErrorToDiscord(error) {
     `❌ ${error.stack || error.message || error}`;
 
   try {
-    await fetch(webhook, {
+    await fetch(ERROR_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -450,62 +656,87 @@ async function sendErrorToDiscord(error) {
   }
 }
 
+// ================= MAIN =================
+
 async function main() {
   console.log("Checking Mythic Shop rotation");
   console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
   console.log(`STATE_FILE = ${STATE_FILE}`);
 
-  const html = await fetchHtml(MYTHIC_URL);
+  const state = loadState();
+  const errors = [];
 
-  if (!html) {
-    const warning =
-      "⚠️ **Mythic Shop Check Skipped**\n\n" +
-      "Mobalytics returned 403, probably blocking GitHub Actions.\n" +
-      "State was not changed.";
+  let mythic = null;
 
-    console.log(warning);
-
-    if (SEND_TO_DISCORD) {
-      await sendToDiscord(warning);
-    }
-
-    return;
+  try {
+    const loldbHtml = await fetchHtml(LOLDB_MYTHIC_URL);
+    mythic = parseLolDbMythicShop(loldbHtml);
+    console.log(
+      `Loaded current Mythic Shop from LoLDB: ${mythic.items.length} items`,
+    );
+  } catch (err) {
+    errors.push(`LoLDB failed: ${err.message}`);
+    console.log(`LoLDB failed: ${err.message}`);
   }
 
-  const mythic = parseMythicShopFromWiki(html);
+  try {
+    const wikiHtml = await fetchHtml(WIKI_MYTHIC_URL);
+    const wikiMythic = parseFandomMythicShop(wikiHtml);
 
-  console.log(`Title: ${mythic.title}`);
-  console.log(`Rotation: ${mythic.rotationTitle || "Unknown"}`);
-  console.log(`Items parsed: ${mythic.items.length}`);
-  console.log(mythic.items);
+    if (!mythic && wikiMythic.items.length) {
+      mythic = wikiMythic;
+      console.log("Loaded current Mythic Shop from League Wiki fallback");
+    }
 
-  if (mythic.items.length < 5) {
+    if (mythic && wikiMythic.upcomingItems.length) {
+      mythic.upcomingItems = wikiMythic.upcomingItems;
+      console.log(
+        `Loaded upcoming Mythic Shop from League Wiki: ${wikiMythic.upcomingItems.length} items`,
+      );
+    }
+  } catch (err) {
+    errors.push(`League Wiki failed: ${err.message}`);
+    console.log(`League Wiki failed: ${err.message}`);
+
+    if (mythic) {
+      mythic.upcomingItems = state.upcomingItems || [];
+      console.log(
+        `Using previous upcoming items from state: ${mythic.upcomingItems.length}`,
+      );
+    }
+  }
+
+  if (!mythic) {
     throw new Error(
-      "Too few Mythic Shop items parsed. Page structure may have changed.",
+      "All Mythic Shop sources failed:\n" +
+        errors.map((error) => `- ${error}`).join("\n"),
     );
   }
 
-  const hashPayload = {
-    rotationTitle: mythic.rotationTitle,
-    items: mythic.items,
-  };
+  console.log(`Title: ${mythic.title}`);
+  console.log(`Rotation: ${mythic.rotationTitle || "Unknown"}`);
+  console.log(`Current items parsed: ${mythic.items.length}`);
+  console.log(`Upcoming items parsed: ${mythic.upcomingItems?.length || 0}`);
 
-  const newHash = createHash(hashPayload);
-  const state = loadState();
+  if (mythic.items.length < 5) {
+    throw new Error(
+      "Too few current Mythic Shop items parsed. Page structure may have changed.",
+    );
+  }
+
+  const newHash = createHash(buildHashPayload(mythic));
 
   if (!state.hash) {
     console.log("Initializing Mythic Shop state");
 
     saveState({
+      ...state,
       hash: newHash,
       title: mythic.title,
       rotationTitle: mythic.rotationTitle,
       items: mythic.items,
+      upcomingItems: mythic.upcomingItems || [],
       updatedAt: new Date().toISOString(),
-      emporium: state.emporium || {
-        status: "UNKNOWN",
-        lastChangedAt: null,
-      },
     });
 
     return;
@@ -513,6 +744,16 @@ async function main() {
 
   if (state.hash === newHash) {
     console.log("No Mythic Shop changes detected");
+
+    saveState({
+      ...state,
+      title: mythic.title,
+      rotationTitle: mythic.rotationTitle,
+      items: mythic.items,
+      upcomingItems: mythic.upcomingItems || state.upcomingItems || [],
+      updatedAt: new Date().toISOString(),
+    });
+
     return;
   }
 
@@ -535,15 +776,13 @@ async function main() {
   }
 
   saveState({
+    ...state,
     hash: newHash,
     title: mythic.title,
     rotationTitle: mythic.rotationTitle,
     items: mythic.items,
+    upcomingItems: mythic.upcomingItems || [],
     updatedAt: new Date().toISOString(),
-    emporium: state.emporium || {
-      status: "UNKNOWN",
-      lastChangedAt: null,
-    },
   });
 }
 

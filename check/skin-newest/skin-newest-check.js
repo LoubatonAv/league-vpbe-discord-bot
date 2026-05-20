@@ -5,39 +5,47 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { chromium } = require("playwright");
 
+const FORCE_SEND = process.env.FORCE_SEND === "true";
 const STATE_FILE = path.join(__dirname, "skin-newest-state.json");
-const DEBUG_JSON_FILE = path.join(__dirname, "debug-opgg-skins.json");
-const DEBUG_HTML_FILE = path.join(__dirname, "debug-opgg-skins.html");
-const DEBUG_SCREENSHOT_FILE = path.join(__dirname, "debug-opgg-skins.png");
+const DEBUG_JSON_FILE = path.join(__dirname, "debug-loldb-skins.json");
+const DEBUG_HTML_FILE = path.join(__dirname, "debug-loldb-skins.html");
+const DEBUG_SCREENSHOT_FILE = path.join(__dirname, "debug-loldb-skins.png");
 
-const SKINS_URL = "https://op.gg/lol/skins";
+const SKINS_URL = "https://loldb.info/skins";
 
 const DISCORD_WEBHOOK_URL =
   process.env.SKIN_NEWEST_WEBHOOK_URL ||
   process.env.SKIN_SALE_WEBHOOK_URL ||
   process.env.DISCORD_WEBHOOK_URL;
 
+const ERROR_WEBHOOK_URL = process.env.ERROR_WEBHOOK_URL;
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
+
+const UPCOMING_LIMIT = Number(process.env.SKIN_NEWEST_UPCOMING_LIMIT || 10);
+const SCAN_LIMIT = Number(process.env.SKIN_NEWEST_SCAN_LIMIT || 30);
 
 // ================= STATE =================
 
+function getDefaultState() {
+  return {
+    hash: null,
+    skins: [],
+    updatedAt: null,
+  };
+}
+
 function loadState() {
   if (!fs.existsSync(STATE_FILE)) {
-    return {
-      hash: null,
-      skins: [],
-      updatedAt: null,
-    };
+    return getDefaultState();
   }
 
   try {
-    return JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
-  } catch {
     return {
-      hash: null,
-      skins: [],
-      updatedAt: null,
+      ...getDefaultState(),
+      ...JSON.parse(fs.readFileSync(STATE_FILE, "utf8")),
     };
+  } catch {
+    return getDefaultState();
   }
 }
 
@@ -47,20 +55,10 @@ function saveState(state) {
 
 // ================= HELPERS =================
 
-function normalizeSkinUrl(url = "") {
-  if (!url) return SKINS_URL;
-
-  if (url.endsWith("/null")) {
-    return url.replace(/\/null$/, "");
-  }
-
-  return url;
-}
-
 function normalizeText(text = "") {
-  return text
-    .replace(/\s+/g, " ")
+  return String(text)
     .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -71,84 +69,23 @@ function createHash(payload) {
     .digest("hex");
 }
 
-function cleanLine(line = "") {
-  return normalizeText(line)
-    .replace(/^new$/i, "")
-    .replace(/^sale$/i, "")
-    .replace(/^chroma$/i, "")
-    .trim();
-}
+function normalizeSkinUrl(url = "") {
+  if (!url) return SKINS_URL;
 
-function isNoiseLine(line = "") {
-  const value = normalizeText(line).toLowerCase();
-
-  if (!value) return true;
-
-  const noise = [
-    "skins",
-    "skin ranking",
-    "newest release",
-    "newest releases",
-    "popular",
-    "all tier",
-    "select option",
-    "champion",
-    "skin search",
-    "advertisement",
-    "remove ads",
-    "op.gg",
-    "league of legends",
-    "lol",
-    "tier",
-    "rp",
-    "chromas",
-    "chroma",
-  ];
-
-  if (noise.includes(value)) return true;
-  if (/^\d+$/.test(value)) return true;
-  if (/^\d+\s*rp$/i.test(value)) return true;
-  if (/^patch\s*\d+/i.test(value)) return true;
-
-  return false;
-}
-
-function sortSkins(skins) {
-  return [...skins].sort((a, b) => {
-    const aKey = `${a.name}-${a.champion}-${a.href}`;
-    const bKey = `${b.name}-${b.champion}-${b.href}`;
-
-    return aKey.localeCompare(bKey);
-  });
+  try {
+    const parsed = new URL(url, SKINS_URL);
+    return parsed.origin + parsed.pathname;
+  } catch {
+    return url;
+  }
 }
 
 function getSkinKey(skin) {
-  return `${skin.name}|${skin.champion || "Unknown"}|${skin.href || ""}`;
+  if (skin.href) return skin.href.toLowerCase();
+  return `${skin.name}|${skin.champion || "Unknown"}`.toLowerCase();
 }
 
-function getDiff(oldSkins = [], newSkins = []) {
-  const oldMap = new Map(oldSkins.map((skin) => [getSkinKey(skin), skin]));
-  const newMap = new Map(newSkins.map((skin) => [getSkinKey(skin), skin]));
-
-  const added = [];
-  const removed = [];
-
-  for (const [key, skin] of newMap) {
-    if (!oldMap.has(key)) {
-      added.push(skin);
-    }
-  }
-
-  for (const [key, skin] of oldMap) {
-    if (!newMap.has(key)) {
-      removed.push(skin);
-    }
-  }
-
-  return { added, removed };
-}
-
-function dedupeSkins(skins) {
+function dedupeSkins(skins = []) {
   const map = new Map();
 
   for (const skin of skins) {
@@ -162,6 +99,415 @@ function dedupeSkins(skins) {
   return [...map.values()];
 }
 
+function getDiff(oldSkins = [], newSkins = []) {
+  const oldMap = new Map(oldSkins.map((skin) => [getSkinKey(skin), skin]));
+  const newMap = new Map(newSkins.map((skin) => [getSkinKey(skin), skin]));
+
+  const added = [];
+
+  for (const [key, skin] of newMap) {
+    if (!oldMap.has(key)) {
+      added.push(skin);
+    }
+  }
+
+  return { added };
+}
+
+function skinForHash(skin) {
+  return {
+    name: skin.name,
+    champion: skin.champion,
+    price: skin.price,
+    href: skin.href,
+    isPbe: skin.isPbe,
+  };
+}
+
+function cleanLine(line = "") {
+  return normalizeText(line)
+    .replace(/^new$/i, "")
+    .replace(/^sale$/i, "")
+    .trim();
+}
+
+function isNoiseLine(line = "") {
+  const value = normalizeText(line).toLowerCase();
+
+  if (!value) return true;
+
+  const noise = [
+    "skins",
+    "skin",
+    "all skins",
+    "legacy",
+    "regular",
+    "epic",
+    "legendary",
+    "mythic",
+    "ultimate",
+    "exalted",
+    "transcendent",
+    "chromas",
+    "skin lines",
+    "longest skin wait",
+    "homepage",
+    "champions",
+    "shop",
+    "tools",
+    "cosmetics",
+    "global search",
+    "weekly giveaways",
+    "advertisement",
+    "remove ads",
+    "loldb",
+    "league of legends",
+    "not affiliated with riot games",
+  ];
+
+  if (noise.includes(value)) return true;
+  if (/^explore\s+\d+/i.test(value)) return true;
+  if (/^\d+$/.test(value)) return true;
+
+  return false;
+}
+
+function titleCaseSlugPart(part) {
+  const lower = part.toLowerCase();
+
+  const special = {
+    kda: "K/DA",
+    drx: "DRX",
+    t1: "T1",
+    skt: "SKT",
+    ig: "IG",
+    project: "PROJECT:",
+    psyops: "PsyOps",
+  };
+
+  if (special[lower]) return special[lower];
+
+  return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
+function slugToSkinName(href = "") {
+  try {
+    const parsed = new URL(href, SKINS_URL);
+    const slug = parsed.pathname.replace("/skins/", "").replace(/\/$/, "");
+
+    if (!slug || slug.includes("/")) return "";
+
+    return slug.split("-").map(titleCaseSlugPart).join(" ");
+  } catch {
+    return "";
+  }
+}
+
+function extractChampionFromName(name = "") {
+  const clean = normalizeText(name);
+
+  const knownChampionSuffixes = [
+    "Aatrox",
+    "Ahri",
+    "Akali",
+    "Akshan",
+    "Alistar",
+    "Ambessa",
+    "Amumu",
+    "Anivia",
+    "Annie",
+    "Aphelios",
+    "Ashe",
+    "Aurelion Sol",
+    "Aurora",
+    "Azir",
+    "Bard",
+    "Bel'Veth",
+    "Blitzcrank",
+    "Brand",
+    "Braum",
+    "Briar",
+    "Caitlyn",
+    "Camille",
+    "Cassiopeia",
+    "Cho'Gath",
+    "Corki",
+    "Darius",
+    "Diana",
+    "Dr. Mundo",
+    "Draven",
+    "Ekko",
+    "Elise",
+    "Evelynn",
+    "Ezreal",
+    "Fiddlesticks",
+    "Fiora",
+    "Fizz",
+    "Galio",
+    "Gangplank",
+    "Garen",
+    "Gnar",
+    "Gragas",
+    "Graves",
+    "Gwen",
+    "Hecarim",
+    "Heimerdinger",
+    "Hwei",
+    "Illaoi",
+    "Irelia",
+    "Ivern",
+    "Janna",
+    "Jarvan IV",
+    "Jax",
+    "Jayce",
+    "Jhin",
+    "Jinx",
+    "K'Sante",
+    "Kai'Sa",
+    "Kalista",
+    "Karma",
+    "Karthus",
+    "Kassadin",
+    "Katarina",
+    "Kayle",
+    "Kayn",
+    "Kennen",
+    "Kha'Zix",
+    "Kindred",
+    "Kled",
+    "Kog'Maw",
+    "LeBlanc",
+    "Lee Sin",
+    "Leona",
+    "Lillia",
+    "Lissandra",
+    "Lucian",
+    "Lulu",
+    "Lux",
+    "Malphite",
+    "Malzahar",
+    "Maokai",
+    "Master Yi",
+    "Mel",
+    "Milio",
+    "Miss Fortune",
+    "Mordekaiser",
+    "Morgana",
+    "Naafiri",
+    "Nami",
+    "Nasus",
+    "Nautilus",
+    "Neeko",
+    "Nidalee",
+    "Nilah",
+    "Nocturne",
+    "Nunu & Willump",
+    "Olaf",
+    "Orianna",
+    "Ornn",
+    "Pantheon",
+    "Poppy",
+    "Pyke",
+    "Qiyana",
+    "Quinn",
+    "Rakan",
+    "Rammus",
+    "Rek'Sai",
+    "Rell",
+    "Renata Glasc",
+    "Renekton",
+    "Rengar",
+    "Riven",
+    "Rumble",
+    "Ryze",
+    "Samira",
+    "Sejuani",
+    "Senna",
+    "Seraphine",
+    "Sett",
+    "Shaco",
+    "Shen",
+    "Shyvana",
+    "Singed",
+    "Sion",
+    "Sivir",
+    "Skarner",
+    "Smolder",
+    "Sona",
+    "Soraka",
+    "Swain",
+    "Sylas",
+    "Syndra",
+    "Tahm Kench",
+    "Taliyah",
+    "Talon",
+    "Taric",
+    "Teemo",
+    "Thresh",
+    "Tristana",
+    "Trundle",
+    "Tryndamere",
+    "Twisted Fate",
+    "Twitch",
+    "Udyr",
+    "Urgot",
+    "Varus",
+    "Vayne",
+    "Veigar",
+    "Vel'Koz",
+    "Vex",
+    "Vi",
+    "Viego",
+    "Viktor",
+    "Vladimir",
+    "Volibear",
+    "Warwick",
+    "Wukong",
+    "Xayah",
+    "Xerath",
+    "Xin Zhao",
+    "Yasuo",
+    "Yone",
+    "Yorick",
+    "Yuumi",
+    "Zac",
+    "Zed",
+    "Zeri",
+    "Ziggs",
+    "Zilean",
+    "Zoe",
+    "Zyra",
+  ];
+
+  const found = knownChampionSuffixes.find((champion) =>
+    clean.toLowerCase().endsWith(` ${champion.toLowerCase()}`),
+  );
+
+  if (found) return found;
+
+  if (/ command line yi$/i.test(clean)) return "Master Yi";
+  if (/choncc kench$/i.test(clean)) return "Tahm Kench";
+
+  return "Unknown";
+}
+
+function parsePriceFromText(text = "") {
+  const normalized = normalizeText(text);
+
+  if (/\bN\/A\b/i.test(normalized)) return "N/A";
+
+  const rpMatch = normalized.match(/(\d{2,5})\s*RP/i);
+  if (rpMatch) return Number(rpMatch[1]);
+
+  const barePriceMatch = normalized.match(
+    /(?:^|\s)(390|520|750|975|1350|1820|2775|3250)(?:\s|$)/,
+  );
+
+  if (barePriceMatch) return Number(barePriceMatch[1]);
+
+  return null;
+}
+
+function isValidSkinHref(href = "") {
+  if (!href) return false;
+
+  try {
+    const parsed = new URL(href, SKINS_URL);
+    const pathname = parsed.pathname;
+
+    if (!pathname.startsWith("/skins/")) return false;
+    if (pathname === "/skins" || pathname === "/skins/") return false;
+
+    if (pathname.includes("/rarity/")) return false;
+    if (pathname.includes("/champion/")) return false;
+    if (pathname.includes("/skin-line/")) return false;
+    if (pathname.includes("/release-date/")) return false;
+
+    const slug = pathname.replace("/skins/", "").replace(/\/$/, "");
+
+    if (!slug) return false;
+    if (slug.includes("/")) return false;
+
+    const badSlugs = new Set([
+      "legacy",
+      "regular",
+      "epic",
+      "legendary",
+      "mythic",
+      "ultimate",
+      "exalted",
+      "transcendent",
+      "chromas",
+      "all",
+    ]);
+
+    if (badSlugs.has(slug.toLowerCase())) return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function buildSkinFromCard(card) {
+  const href = normalizeSkinUrl(card.href || "");
+
+  if (!isValidSkinHref(href)) return null;
+
+  const lines = [...(card.lines || []), card.imgAlt || ""]
+    .map(cleanLine)
+    .filter((line) => line && !isNoiseLine(line));
+
+  const uniqueLines = [...new Set(lines)];
+
+  const fullText = normalizeText(
+    [card.text || "", card.imgAlt || "", uniqueLines.join(" ")].join(" "),
+  );
+
+  const slugName = slugToSkinName(href);
+
+  const nameCandidate = uniqueLines.find((line) => {
+    if (/^\d+\s*RP$/i.test(line)) return false;
+    if (/^N\/A$/i.test(line)) return false;
+    if (/^(390|520|750|975|1350|1820|2775|3250)$/i.test(line)) return false;
+
+    return line.length >= 3 && line.length <= 90;
+  });
+
+  let name = normalizeText(nameCandidate || slugName);
+
+  if (!name || name.length < 3) return null;
+
+  name = name.replace(/^Project /, "PROJECT: ");
+
+  const champion = extractChampionFromName(name);
+  const price = parsePriceFromText(fullText);
+  const image = card.imgSrc || null;
+  const isPbe = Boolean(image && image.includes("/pbe/"));
+
+  return {
+    name,
+    champion,
+    price,
+    href,
+    image,
+    isPbe,
+    source: "LoLDB",
+  };
+}
+
+function isUpcomingSkin(skin) {
+  return skin.isPbe === true;
+}
+
+function buildTrackedSkins(allSkins = []) {
+  const upcomingSkins = allSkins
+    .filter(isUpcomingSkin)
+    .slice(0, UPCOMING_LIMIT);
+
+  return upcomingSkins;
+}
+
 // ================= SCRAPE =================
 
 async function fetchNewestSkins() {
@@ -172,7 +518,7 @@ async function fetchNewestSkins() {
   const page = await browser.newPage({
     viewport: {
       width: 1440,
-      height: 1600,
+      height: 1800,
     },
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -189,14 +535,9 @@ async function fetchNewestSkins() {
 
     await page.waitForTimeout(6000);
 
-    for (let i = 0; i < 4; i++) {
-      await page.mouse.wheel(0, 900);
-      await page.waitForTimeout(800);
-    }
-
     const html = await page.content();
 
-    const rawCards = await page.evaluate(() => {
+    const rawCards = await page.evaluate((scanLimit) => {
       function textOf(el) {
         return (el.innerText || el.textContent || "")
           .replace(/\s+/g, " ")
@@ -210,51 +551,103 @@ async function fetchNewestSkins() {
           .filter(Boolean);
       }
 
-      const selectors = ["a", "article", "li", "[role='listitem']", "div"];
-      const nodes = Array.from(document.querySelectorAll(selectors.join(",")));
+      function isRealSkinUrl(href) {
+        if (!href) return false;
+
+        try {
+          const url = new URL(href);
+          const pathname = url.pathname;
+
+          if (!pathname.startsWith("/skins/")) return false;
+          if (pathname === "/skins" || pathname === "/skins/") return false;
+
+          if (pathname.includes("/rarity/")) return false;
+          if (pathname.includes("/champion/")) return false;
+          if (pathname.includes("/skin-line/")) return false;
+          if (pathname.includes("/release-date/")) return false;
+
+          const slug = pathname.replace("/skins/", "").replace(/\/$/, "");
+
+          if (!slug) return false;
+          if (slug.includes("/")) return false;
+
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function bestContainerFor(anchor) {
+        const candidates = [
+          anchor,
+          anchor.closest("article"),
+          anchor.closest("li"),
+          anchor.closest("[role='listitem']"),
+          anchor.parentElement,
+          anchor.parentElement?.parentElement,
+          anchor.parentElement?.parentElement?.parentElement,
+        ].filter(Boolean);
+
+        let best = anchor;
+
+        for (const el of candidates) {
+          const rect = el.getBoundingClientRect();
+          const text = textOf(el);
+
+          if (rect.width < 80 || rect.height < 40) continue;
+          if (rect.height > 500) continue;
+          if (!text) continue;
+
+          if (text.length >= textOf(best).length && text.length <= 350) {
+            best = el;
+          }
+        }
+
+        return best;
+      }
+
+      const anchors = Array.from(
+        document.querySelectorAll("a[href*='/skins/']"),
+      )
+        .filter((anchor) => isRealSkinUrl(anchor.href))
+        .slice(0, scanLimit);
 
       const cards = [];
 
-      for (const el of nodes) {
-        const rect = el.getBoundingClientRect();
-        const img = el.querySelector("img");
-
-        if (!img) continue;
-        if (rect.width < 80 || rect.height < 80) continue;
-        if (rect.height > 800) continue;
-
-        const text = textOf(el);
-        const lines = linesOf(el);
-
-        const href =
-          el.href || el.closest("a")?.href || el.querySelector("a")?.href || "";
+      for (const anchor of anchors) {
+        const container = bestContainerFor(anchor);
+        const img =
+          container.querySelector("img") || anchor.querySelector("img");
 
         const imgSrc =
-          img.currentSrc || img.src || img.getAttribute("src") || "";
+          img?.currentSrc || img?.src || img?.getAttribute("src") || "";
 
         const imgAlt =
-          img.alt || img.getAttribute("alt") || img.getAttribute("title") || "";
+          img?.alt ||
+          img?.getAttribute("alt") ||
+          img?.getAttribute("title") ||
+          "";
 
         cards.push({
-          text,
-          lines,
-          href,
+          text: textOf(container),
+          lines: linesOf(container),
+          href: anchor.href || "",
           imgSrc,
           imgAlt,
-          className: el.className ? String(el.className) : "",
+          className: container.className ? String(container.className) : "",
         });
       }
 
       return cards;
-    });
+    }, SCAN_LIMIT);
 
-    console.log("Raw cards:", rawCards.length);
+    console.log("Raw LoLDB cards:", rawCards.length);
     console.log(
-      "First raw cards:",
-      JSON.stringify(rawCards.slice(0, 5), null, 2),
+      "First raw LoLDB cards:",
+      JSON.stringify(rawCards.slice(0, 12), null, 2),
     );
 
-    if (process.env.DEBUG_OPGG_SKINS === "true") {
+    if (process.env.DEBUG_LOLDB_SKINS === "true") {
       fs.writeFileSync(DEBUG_JSON_FILE, JSON.stringify(rawCards, null, 2));
       fs.writeFileSync(DEBUG_HTML_FILE, html);
 
@@ -264,16 +657,21 @@ async function fetchNewestSkins() {
       });
     }
 
-    const skins = parseCards(rawCards);
+    const allSkins = dedupeSkins(
+      rawCards.map(buildSkinFromCard).filter(Boolean),
+    );
+    const skins = buildTrackedSkins(allSkins);
 
-    console.log("Parsed skins:", skins.length);
+    console.log("Parsed LoLDB skins:", allSkins.length);
+    console.log("Upcoming tracked skins:", skins.length);
     console.log(
-      "First parsed skins:",
-      JSON.stringify(skins.slice(0, 10), null, 2),
+      "Tracked skin preview:",
+      JSON.stringify(skins.slice(0, 20), null, 2),
     );
 
     return {
       skins,
+      allSkins,
       rawCardsCount: rawCards.length,
     };
   } finally {
@@ -281,107 +679,46 @@ async function fetchNewestSkins() {
   }
 }
 
-function parseCards(rawCards = []) {
-  const tierRegex =
-    /^(ultimate|legendary|epic|mythic|prestige|exalted|transcendent)$/i;
-
-  const skins = [];
-
-  for (const card of rawCards) {
-    const href = card.href || "";
-
-    // חשוב:
-    // OP.GG מייצר הרבה cards כלליים עם /null.
-    // אלה בדרך כלל לא קישור ספציפי לסקין ולכן גורמים ל-false positives.
-
-    const lines = [...(card.lines || []), card.imgAlt]
-      .map(cleanLine)
-      .filter((line) => line && !isNoiseLine(line));
-
-    const uniqueLines = [...new Set(lines)];
-
-    if (uniqueLines.length === 0) continue;
-
-    const joinedLines = uniqueLines.join(" ");
-
-    // Skip sale / discount cards.
-    // דוגמאות: 25%, 27%, ~5/25
-    if (/%|~\d+\/\d+/.test(joinedLines)) {
-      continue;
-    }
-
-    const tierLine = uniqueLines.find((line) => tierRegex.test(line));
-    const tier = tierLine || "Unknown";
-
-    const rpLine = uniqueLines.find(
-      (line) => /\d+\s*rp/i.test(line) || /^\d+$/.test(line),
-    );
-    let price = null;
-
-    if (rpLine) {
-      const match = rpLine.match(/(\d+)/);
-      if (match) price = Number(match[1]);
-    }
-
-    const candidateLines = uniqueLines.filter((line) => {
-      if (!line) return false;
-      if (tierRegex.test(line)) return false;
-      if (/^\d+$/.test(line)) return false;
-      if (/\d+\s*rp/i.test(line)) return false;
-      if (/^\d+%$/.test(line)) return false;
-      if (/^~\d+\/\d+$/.test(line)) return false;
-      if (/no price data/i.test(line)) return false;
-      if (/newest|release|skin|champion|search|ranking|select/i.test(line)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    if (candidateLines.length !== 1) {
-      continue;
-    }
-
-    const name = normalizeText(candidateLines[0]);
-
-    if (!name) continue;
-    if (name.length > 80) continue;
-    if (tierRegex.test(name)) continue;
-    if (/select|search|ranking|advertisement/i.test(name)) continue;
-
-    skins.push({
-      name,
-      champion: "Unknown",
-      tier,
-      price,
-      href: normalizeSkinUrl(href),
-      image: card.imgSrc || null,
-      source: "OP.GG",
-    });
-  }
-
-  return dedupeSkins(skins).slice(0, 6);
-}
-
 // ================= FORMAT =================
 
-function formatSkinLine(skin) {
-  const tierPart =
-    skin.tier && skin.tier !== "Unknown" ? ` | ${skin.tier}` : "";
-  const pricePart = skin.price ? ` | ${skin.price} RP` : "";
-
-  return `• ${skin.name}${tierPart}${pricePart}`;
+function formatPrice(price) {
+  if (price === "N/A") return "N/A";
+  if (typeof price === "number") return `${price} RP`;
+  return "Unknown price";
 }
 
-function formatDiscordMessage({ added }) {
+function formatSkinLine(skin) {
+  const tags = [];
+
+  if (skin.price === "N/A") tags.push("N/A");
+  if (skin.isPbe) tags.push("PBE");
+
+  const tagText = tags.length ? ` — ${tags.join(" / ")}` : "";
+
+  const champion =
+    skin.champion && skin.champion !== "Unknown" ? ` — ${skin.champion}` : "";
+
+  return `• ${skin.name}${champion} — ${formatPrice(skin.price)}${tagText}`;
+}
+
+function formatDiscordMessage({ added, skins }) {
   let msg = "";
 
-  msg += `✨ New League Skins Released\n\n`;
+  msg += `✨ **Upcoming League Skins Detected**\n`;
+  msg += `🔗 <${SKINS_URL}>\n\n`;
 
-  for (const skin of added) {
-    const tierPart =
-      skin.tier && skin.tier !== "Unknown" ? ` — ${skin.tier}` : "";
-    msg += `• ${skin.name}${tierPart}\n`;
+  if (added.length) {
+    msg += `🟢 **New Since Last Check**\n`;
+    for (const skin of added) {
+      msg += `${formatSkinLine(skin)}\n`;
+    }
+
+    return msg.trim();
+  }
+
+  msg += `📌 **Current Upcoming Watchlist**\n`;
+  for (const skin of skins) {
+    msg += `${formatSkinLine(skin)}\n`;
   }
 
   return msg.trim();
@@ -406,7 +743,7 @@ async function sendToDiscord(message) {
           description: message.slice(0, 3900),
           color: 0xc084fc,
           footer: {
-            text: "League Newest Skin Tracker",
+            text: "LoLDB Upcoming Skin Tracker",
           },
           timestamp: new Date().toISOString(),
         },
@@ -421,9 +758,7 @@ async function sendToDiscord(message) {
 }
 
 async function sendErrorToDiscord(error) {
-  const webhook = process.env.ERROR_WEBHOOK_URL;
-
-  if (!webhook) {
+  if (!ERROR_WEBHOOK_URL) {
     console.log("No ERROR_WEBHOOK_URL found");
     return;
   }
@@ -434,7 +769,7 @@ async function sendErrorToDiscord(error) {
     `❌ ${error.stack || error.message || error}`;
 
   try {
-    await fetch(webhook, {
+    await fetch(ERROR_WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -451,46 +786,39 @@ async function sendErrorToDiscord(error) {
 // ================= MAIN =================
 
 async function main() {
-  console.log("Checking newest League skins");
+  console.log("Checking upcoming League skins from LoLDB");
   console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
+  console.log(`STATE_FILE = ${STATE_FILE}`);
+  console.log(`SKINS_URL = ${SKINS_URL}`);
+  console.log(`UPCOMING_LIMIT = ${UPCOMING_LIMIT}`);
+  console.log(`SCAN_LIMIT = ${SCAN_LIMIT}`);
 
   const result = await fetchNewestSkins();
   const skins = result.skins;
 
   console.log(`Raw cards found: ${result.rawCardsCount}`);
-  console.log(`Skins parsed: ${skins.length}`);
+  console.log(`Upcoming skins parsed: ${skins.length}`);
 
-  if (skins.length < 3) {
+  if (skins.length < 1) {
     throw new Error(
-      `Too few skins parsed from OP.GG. Check debug files in check/skin-newest/.`,
+      "No upcoming skins parsed from LoLDB. Run with DEBUG_LOLDB_SKINS=true and check debug files in check/skin-newest/.",
     );
   }
 
-  const suspiciousNames = skins.filter(
-    (s) =>
-      s.name.length < 4 ||
-      /search|ranking|tier|select|advertisement/i.test(s.name),
-  );
-
-  if (suspiciousNames.length > 0) {
-    console.log("Suspicious parsed names:");
-    console.log(suspiciousNames);
-  }
-
-  for (const skin of skins.slice(0, 20)) {
+  for (const skin of skins) {
     console.log(formatSkinLine(skin));
     console.log(`  href: ${skin.href}`);
     console.log(`  image: ${skin.image}`);
   }
 
   const newHash = createHash({
-    skins,
+    skins: skins.map(skinForHash),
   });
 
   const state = loadState();
 
   if (!state.hash) {
-    console.log("Initializing newest skins state");
+    console.log("Initializing upcoming skin state");
 
     saveState({
       hash: newHash,
@@ -501,15 +829,17 @@ async function main() {
     return;
   }
 
-  if (state.hash === newHash) {
-    console.log("No newest skin changes");
+  if (state.hash === newHash && !FORCE_SEND) {
+    console.log("No upcoming skin changes");
     return;
   }
 
-  const diff = getDiff(state.skins, skins);
+  const diff = FORCE_SEND ? { added: skins } : getDiff(state.skins, skins);
 
-  if (diff.added.length === 0) {
-    console.log("Skin list changed, but no new skins were detected.");
+  if (diff.added.length === 0 && !FORCE_SEND) {
+    console.log(
+      "Upcoming skin list changed, but no new upcoming skins were detected.",
+    );
     console.log("Saving updated state.");
 
     saveState({
@@ -523,6 +853,7 @@ async function main() {
 
   const message = formatDiscordMessage({
     added: diff.added,
+    skins,
   });
 
   console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");
@@ -531,7 +862,7 @@ async function main() {
 
   if (SEND_TO_DISCORD) {
     await sendToDiscord(message);
-    console.log("Sent newest skin update to Discord");
+    console.log("Sent upcoming skin update to Discord");
   } else {
     console.log("Dry run only");
   }

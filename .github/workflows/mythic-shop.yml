@@ -2,7 +2,7 @@ name: League Mythic Shop Updates
 
 on:
   schedule:
-    - cron: "30 1 * * *"
+    - cron: "30 1 */6 * *"
   workflow_dispatch:
 
 permissions:
@@ -36,8 +36,11 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          git add check/mythic-shop/mythic-shop-state.json
-          git commit -m "update mythic shop state" || echo "No mythic shop state changes"
-
-          git pull --rebase
-          git push
+          if [ -f check/mythic-shop/mythic-shop-state.json ]; then
+            git add check/mythic-shop/mythic-shop-state.json
+            git commit -m "update mythic shop state" || echo "No mythic shop state changes"
+            git pull --rebase
+            git push
+          else
+            echo "No mythic shop state file found"
+          fi

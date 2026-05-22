@@ -1,15 +1,20 @@
 require("dotenv").config();
+const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const cheerio = require("cheerio");
 
-const STATE_FILE = "check/skin-sale/skin-sale-state.json";
+const STATE_FILE = path.join(__dirname, "skin-sale-state.json");
+const DEBUG_HTML_FILE = path.join(__dirname, "debug-loldb-skin-sale.html");
+const DEBUG_JSON_FILE = path.join(__dirname, "debug-loldb-skin-sale.json");
 
-const DISCORD_WEBHOOK_URL = process.env.SKIN_SALE_WEBHOOK_URL;
+const SALE_URL = "https://loldb.info/skin-sale";
+
+const DISCORD_WEBHOOK_URL =
+  process.env.SKIN_SALE_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
+
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
-
-const SALE_URL = "https://mobalytics.gg/lol/guides/weekly-skin-sale";
 
 // ================= STATE =================
 
@@ -35,6 +40,52 @@ function loadState() {
   }
 }
 
+function saveState(state) {
+  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+// ================= HELPERS =================
+
+function normalizeText(text = "") {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function createHash(payload) {
+  return crypto
+    .createHash("sha256")
+    .update(JSON.stringify(payload))
+    .digest("hex");
+}
+
+function getDiscountEmoji(discount) {
+  if (discount >= 60) return "🔥";
+  if (discount >= 50) return "🟢";
+  if (discount >= 40) return "🟡";
+  if (discount >= 30) return "🟠";
+  return "🔵";
+}
+
+function getSkinKey(skin) {
+  return `${skin.name}|${skin.discount}|${skin.salePrice}|${skin.originalPrice}`;
+}
+
+function sortSkins(skins) {
+  return [...skins].sort((a, b) => {
+    if (b.discount !== a.discount) return b.discount - a.discount;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function dedupeSkins(skins) {
+  const map = new Map();
+
+  for (const skin of skins) {
+    map.set(getSkinKey(skin), skin);
+  }
+
+  return [...map.values()];
+}
+
 function groupSkinsByExactDiscount(skins) {
   const grouped = {};
 
@@ -52,166 +103,195 @@ function groupSkinsByExactDiscount(skins) {
     .map(([discount, sectionSkins]) => ({
       discount: Number(discount),
       title: `${getDiscountEmoji(Number(discount))} ${discount}% OFF`,
-      skins: sectionSkins,
+      skins: sortSkins(sectionSkins),
     }))
     .sort((a, b) => b.discount - a.discount);
 }
 
-function getDiscountEmoji(discount) {
-  if (discount >= 60) return "🔥";
-  if (discount >= 50) return "🟢";
-  if (discount >= 40) return "🟡";
-  if (discount >= 30) return "🟠";
-  return "🔵";
-}
+function splitDiscordMessage(text, maxLength = 3900) {
+  const lines = text.split("\n");
+  const chunks = [];
+  let current = "";
 
-function saveState(state) {
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-}
+  for (const line of lines) {
+    if ((current + line + "\n").length > maxLength) {
+      if (current.trim()) chunks.push(current.trim());
+      current = "";
+    }
 
-// ================= HELPERS =================
+    current += line + "\n";
+  }
 
-function normalizeText(text = "") {
-  return text.replace(/\s+/g, " ").trim();
-}
+  if (current.trim()) chunks.push(current.trim());
 
-function titleCase(text = "") {
-  return text
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => {
-      if (word.length <= 2) return word.toUpperCase();
-
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
-
-function createHash(payload) {
-  return crypto
-    .createHash("sha256")
-    .update(JSON.stringify(payload))
-    .digest("hex");
-}
-
-function sortSkins(skins) {
-  return [...skins].sort((a, b) => {
-    const aKey = `${a.skinName}-${a.champion}-${a.salePrice}`;
-    const bKey = `${b.skinName}-${b.champion}-${b.salePrice}`;
-
-    return aKey.localeCompare(bKey);
-  });
+  return chunks;
 }
 
 // ================= FETCH =================
 
 async function fetchHtml() {
-  const res = await fetch(SALE_URL, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 League Skin Sale Tracker/1.0",
-      Accept: "text/html,application/xhtml+xml",
-    },
+  const browser = await chromium.launch({
+    headless: true,
   });
 
-  if (!res.ok) {
-    throw new Error(`Sale page failed: ${res.status}`);
-  }
+  const page = await browser.newPage({
+    viewport: {
+      width: 1440,
+      height: 1600,
+    },
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  });
 
-  return res.text();
+  try {
+    await page.goto(SALE_URL, {
+      waitUntil: "domcontentloaded",
+      timeout: 45000,
+    });
+
+    await page.waitForTimeout(5000);
+
+    for (let i = 0; i < 3; i++) {
+      await page.mouse.wheel(0, 900);
+      await page.waitForTimeout(700);
+    }
+
+    return await page.content();
+  } finally {
+    await browser.close();
+  }
 }
 
 // ================= SCRAPE =================
 
-function parseSalePage(html) {
-  const $ = cheerio.load(html);
+function parseSaleText(text, href = "") {
+  const clean = normalizeText(text);
 
-  const pageText = html
-    .replace(/\\u002F/g, "/")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&amp;/g, "&");
+  if (!clean) return null;
+  if (/showing/i.test(clean)) return null;
+  if (/skin sale/i.test(clean)) return null;
+  if (/discounts end/i.test(clean)) return null;
 
-  let saleRange = null;
+  const patterns = [
+    /^-?\s*(\d{1,2})\s*%\s+(.+?)\s+(\d{3,4})\s+(\d{3,4})$/i,
+    /^(.+?)\s+-?\s*(\d{1,2})\s*%\s+(\d{3,4})\s+(\d{3,4})$/i,
+    /^(.+?)\s+(\d{3,4})\s+(\d{3,4})\s+-?\s*(\d{1,2})\s*%$/i,
+  ];
 
-  const rangeMatch =
-    pageText.match(/LoL Skin Sale:\s*([^"<\\]+)/i) ||
-    pageText.match(/headline":"LoL Skin Sale:\s*([^"]+)/i);
+  for (let i = 0; i < patterns.length; i++) {
+    const match = clean.match(patterns[i]);
 
-  if (rangeMatch) {
-    saleRange = normalizeText(rangeMatch[1]);
-  }
+    if (!match) continue;
 
-  const skins = [];
-  const regex = /"text":"([^"]+?)-(\d+)\s*RP\s*\((\d+)\s*RP\)-(\d+)%\s*Off"/gi;
+    let name;
+    let discount;
+    let salePrice;
+    let originalPrice;
 
-  let match;
+    if (i === 0) {
+      discount = Number(match[1]);
+      name = normalizeText(match[2]);
+      salePrice = Number(match[3]);
+      originalPrice = Number(match[4]);
+    } else if (i === 1) {
+      name = normalizeText(match[1]);
+      discount = Number(match[2]);
+      salePrice = Number(match[3]);
+      originalPrice = Number(match[4]);
+    } else {
+      name = normalizeText(match[1]);
+      salePrice = Number(match[2]);
+      originalPrice = Number(match[3]);
+      discount = Number(match[4]);
+    }
 
-  while ((match = regex.exec(pageText)) !== null) {
-    const fullName = normalizeText(match[1]);
-    const salePrice = Number(match[2]);
-    const originalPrice = Number(match[3]);
-    const discount = Number(match[4]);
+    if (!name) return null;
+    if (name.length > 80) return null;
+    if (!discount || !salePrice || !originalPrice) return null;
+    if (discount < 1 || discount > 90) return null;
 
-    const words = fullName.split(" ");
-    const champion = words[words.length - 1];
-    const skinName = words.slice(0, -1).join(" ");
-
-    skins.push({
-      fullName,
-      displayName:
-        skinName && champion ? `${champion} - ${skinName}` : fullName,
-      skinName: titleCase(skinName || fullName),
-      champion: titleCase(skinName ? champion : "Unknown"),
-      tier: "Unknown",
+    return {
+      name,
       discount,
       salePrice,
       originalPrice,
-    });
+      href: href
+        ? href.startsWith("http")
+          ? href
+          : `https://loldb.info${href}`
+        : SALE_URL,
+      source: "LoLDB",
+    };
   }
 
-  const unique = new Map();
+  return null;
+}
 
-  for (const skin of skins) {
-    const key =
-      `${skin.skinName}|${skin.champion}|` +
-      `${skin.salePrice}|${skin.originalPrice}|${skin.discount}`;
+function parseSalePage(html) {
+  const $ = cheerio.load(html);
 
-    unique.set(key, skin);
+  const rawText = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"');
+
+  const pageText = normalizeText(rawText);
+
+  const rangeMatch = pageText.match(/Discounts End in\s+(.+?)\s+Check out/i);
+
+  const saleRange = rangeMatch
+    ? `Discounts End in ${normalizeText(rangeMatch[1])}`
+    : "Skin Sale";
+
+  const found = [];
+
+  const saleBlockMatch = pageText.match(
+    /Showing\s+\d+\s+of\s+\d+\s+discounts\s+(.+?)\s+Filters/i,
+  );
+
+  const saleText = saleBlockMatch ? saleBlockMatch[1] : pageText;
+
+  const saleRegex =
+    /-\s*(\d{1,2})\s*%\s+(.+?)\s+(\d{3,4})\s+(\d{3,4})(?=\s+-\s*\d{1,2}\s*%|\s*$)/g;
+
+  let match;
+
+  while ((match = saleRegex.exec(saleText)) !== null) {
+    found.push({
+      discount: Number(match[1]),
+      name: normalizeText(match[2]),
+      salePrice: Number(match[3]),
+      originalPrice: Number(match[4]),
+      href: SALE_URL,
+      source: "LoLDB",
+    });
   }
 
   return {
     saleRange,
-    skins: sortSkins([...unique.values()]),
+    skins: sortSkins(dedupeSkins(found)),
   };
 }
 
 // ================= DIFF =================
 
-function getSkinKey(skin) {
-  return (
-    `${skin.skinName}|${skin.champion}|` +
-    `${skin.salePrice}|${skin.originalPrice}|${skin.discount}`
-  );
-}
-
 function getDiff(oldSkins = [], newSkins = []) {
   const oldMap = new Map(oldSkins.map((skin) => [getSkinKey(skin), skin]));
-
   const newMap = new Map(newSkins.map((skin) => [getSkinKey(skin), skin]));
 
   const added = [];
   const removed = [];
 
   for (const [key, skin] of newMap) {
-    if (!oldMap.has(key)) {
-      added.push(skin);
-    }
+    if (!oldMap.has(key)) added.push(skin);
   }
 
   for (const [key, skin] of oldMap) {
-    if (!newMap.has(key)) {
-      removed.push(skin);
-    }
+    if (!newMap.has(key)) removed.push(skin);
   }
 
   return { added, removed };
@@ -220,17 +300,14 @@ function getDiff(oldSkins = [], newSkins = []) {
 // ================= FORMAT =================
 
 function formatSkinLine(skin) {
-  return (
-    `• ${skin.displayName} — ` +
-    `${skin.salePrice} RP ${skin.originalPrice} RP ` +
-    `(${skin.discount}% OFF)`
-  );
+  return `• ${skin.name} — ${skin.salePrice} RP / ${skin.originalPrice} RP`;
 }
 
 function formatDiscordMessage({ saleRange, skins }) {
   let msg = "";
 
   msg += `🛒 League Weekly Skin Sale Updated\n`;
+  msg += `🔗 ${SALE_URL}\n`;
 
   if (saleRange) {
     msg += `📅 ${saleRange}\n`;
@@ -243,11 +320,7 @@ function formatDiscordMessage({ saleRange, skins }) {
   for (const section of sections) {
     msg += `${section.title}\n`;
 
-    const sorted = [...section.skins].sort((a, b) =>
-      a.displayName.localeCompare(b.displayName),
-    );
-
-    for (const skin of sorted) {
+    for (const skin of section.skins) {
       msg += `${formatSkinLine(skin)}\n`;
     }
 
@@ -259,40 +332,15 @@ function formatDiscordMessage({ saleRange, skins }) {
 
 // ================= DISCORD =================
 
-function splitDiscordMessage(text, maxLength = 1900) {
-  const lines = text.split("\n");
-
-  const chunks = [];
-  let current = "";
-
-  for (const line of lines) {
-    if ((current + line + "\n").length > maxLength) {
-      if (current.trim()) {
-        chunks.push(current.trim());
-      }
-
-      current = "";
-    }
-
-    current += line + "\n";
-  }
-
-  if (current.trim()) {
-    chunks.push(current.trim());
-  }
-
-  return chunks;
-}
-
 async function sendToDiscord(message, skins = []) {
   if (!DISCORD_WEBHOOK_URL) {
     console.log("No DISCORD_WEBHOOK_URL found");
     return;
   }
 
-  let color = 0x5865f2;
-
   const bestDiscount = Math.max(...skins.map((s) => s.discount), 0);
+
+  let color = 0x5865f2;
 
   if (bestDiscount >= 50) {
     color = 0x57f287;
@@ -300,33 +348,38 @@ async function sendToDiscord(message, skins = []) {
     color = 0xfee75c;
   }
 
-  const res = await fetch(DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      embeds: [
-        {
-          title: "🛒 League Weekly Skin Sale Updated",
-          description: message,
-          color,
-          footer: {
-            text: "League Skin Sale Tracker",
-          },
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }),
-  });
+  const chunks = splitDiscordMessage(message);
 
-  if (!res.ok) {
-    console.log(await res.text());
-    throw new Error(`Discord failed ${res.status}`);
+  for (const [index, chunk] of chunks.entries()) {
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        embeds: [
+          {
+            title:
+              chunks.length > 1
+                ? `🛒 League Weekly Skin Sale Updated (${index + 1}/${chunks.length})`
+                : "🛒 League Weekly Skin Sale Updated",
+            description: chunk,
+            color,
+            footer: {
+              text: "League Skin Sale Tracker",
+            },
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.log(await res.text());
+      throw new Error(`Discord failed ${res.status}`);
+    }
   }
 }
-
-// ================= MAIN =================
 
 async function sendErrorToDiscord(error) {
   const webhook = process.env.ERROR_WEBHOOK_URL;
@@ -356,27 +409,41 @@ async function sendErrorToDiscord(error) {
   }
 }
 
+// ================= MAIN =================
+
 async function main() {
-  console.log("Checking League weekly skin sale");
+  console.log("Checking League weekly skin sale from LoLDB");
   console.log(`SEND_TO_DISCORD = ${SEND_TO_DISCORD}`);
 
   const html = await fetchHtml();
 
+  if (process.env.DEBUG_SKIN_SALE === "true") {
+    fs.writeFileSync(DEBUG_HTML_FILE, html);
+  }
+
   const sale = parseSalePage(html);
 
-  if (sale.skins.length < 5) {
-    throw new Error("Too few skins parsed. Page structure may have changed.");
+  if (process.env.DEBUG_SKIN_SALE === "true") {
+    fs.writeFileSync(DEBUG_JSON_FILE, JSON.stringify(sale, null, 2));
   }
 
   console.log(`Sale range: ${sale.saleRange || "Unknown"}`);
   console.log(`Skins found: ${sale.skins.length}`);
 
-  const hashPayload = {
+  for (const skin of sale.skins) {
+    console.log(formatSkinLine(skin));
+  }
+
+  if (sale.skins.length < 3) {
+    throw new Error(
+      "Too few skins parsed from LoLDB. Page structure may have changed.",
+    );
+  }
+
+  const newHash = createHash({
     saleRange: sale.saleRange,
     skins: sale.skins,
-  };
-
-  const newHash = createHash(hashPayload);
+  });
 
   const state = loadState();
 
@@ -400,10 +467,12 @@ async function main() {
 
   const diff = getDiff(state.skins, sale.skins);
 
+  console.log(`Added: ${diff.added.length}`);
+  console.log(`Removed: ${diff.removed.length}`);
+
   const message = formatDiscordMessage({
     saleRange: sale.saleRange,
     skins: sale.skins,
-    diff,
   });
 
   console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");

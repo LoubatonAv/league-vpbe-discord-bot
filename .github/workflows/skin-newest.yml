@@ -25,7 +25,7 @@ jobs:
         run: npm install
 
       - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Restore newest skins state
         uses: actions/cache/restore@v4
@@ -42,7 +42,6 @@ jobs:
           SKIN_SALE_WEBHOOK_URL: ${{ secrets.SKIN_SALE_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
-
 
       - name: Save newest skins state
         if: always()

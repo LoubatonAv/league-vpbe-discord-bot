@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Run skin sale checker
         run: npm run skin-sale
         env:
@@ -36,8 +39,9 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
+          git pull --rebase
+
           git add check/skin-sale/skin-sale-state.json
           git commit -m "update skin sale state" || echo "No skin sale state changes"
 
-          git pull --rebase
           git push

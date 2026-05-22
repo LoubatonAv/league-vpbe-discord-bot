@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   skin-sale:
@@ -27,6 +27,14 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Restore skin sale state
+        uses: actions/cache/restore@v4
+        with:
+          path: check/skin-sale/skin-sale-state.json
+          key: skin-sale-state-${{ github.run_id }}
+          restore-keys: |
+            skin-sale-state-
+
       - name: Run skin sale checker
         run: npm run skin-sale
         env:
@@ -34,14 +42,9 @@ jobs:
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
 
-      - name: Commit skin sale state
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          git pull --rebase
-
-          git add check/skin-sale/skin-sale-state.json
-          git commit -m "update skin sale state" || echo "No skin sale state changes"
-
-          git push
+      - name: Save skin sale state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: check/skin-sale/skin-sale-state.json
+          key: skin-sale-state-${{ github.run_id }}

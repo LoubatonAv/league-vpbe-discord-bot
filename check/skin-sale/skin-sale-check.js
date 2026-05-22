@@ -450,6 +450,20 @@ async function main() {
   if (!state.hash) {
     console.log("Initializing skin sale state");
 
+    const message = formatDiscordMessage({
+      saleRange: sale.saleRange,
+      skins: sale.skins,
+    });
+
+    console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");
+    console.log(message);
+    console.log("\n===============================\n");
+
+    if (SEND_TO_DISCORD) {
+      await sendToDiscord(message, sale.skins);
+      console.log("Sent initial skin sale list to Discord");
+    }
+
     saveState({
       hash: newHash,
       saleRange: sale.saleRange,

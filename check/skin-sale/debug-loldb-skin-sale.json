@@ -1,0 +1,125 @@
+{
+  "saleRange": "Discounts End in 3 days, 14 hours Discounts End in 3 days, 14 hours",
+  "skins": [
+    {
+      "discount": 60,
+      "name": "Dragonwing Corki",
+      "salePrice": 390,
+      "originalPrice": 975,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 60,
+      "name": "Tyrant Swain",
+      "salePrice": 540,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 55,
+      "name": "Arcana Ryze",
+      "salePrice": 607,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 55,
+      "name": "Kibble-Head Kled",
+      "salePrice": 607,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 50,
+      "name": "Beemo",
+      "salePrice": 675,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 50,
+      "name": "Dawnbringer Vayne",
+      "salePrice": 675,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 50,
+      "name": "Elderwood Bard",
+      "salePrice": 487,
+      "originalPrice": 975,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 45,
+      "name": "Street Demons Rengar",
+      "salePrice": 742,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 40,
+      "name": "Glizzy Naafiri",
+      "salePrice": 810,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 40,
+      "name": "Heavenscale Smolder",
+      "salePrice": 810,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 35,
+      "name": "Crime City Jinx",
+      "salePrice": 633,
+      "originalPrice": 975,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 35,
+      "name": "HEARTSTEEL Sett",
+      "salePrice": 877,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 35,
+      "name": "Runeborn Xerath",
+      "salePrice": 487,
+      "originalPrice": 750,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 27,
+      "name": "Rain Shepherd Gwen",
+      "salePrice": 975,
+      "originalPrice": 1350,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    },
+    {
+      "discount": 25,
+      "name": "Winter Wonder Zeri",
+      "salePrice": 1350,
+      "originalPrice": 1820,
+      "href": "https://loldb.info/skin-sale",
+      "source": "LoLDB"
+    }
+  ]
+}

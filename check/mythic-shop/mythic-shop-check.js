@@ -6,6 +6,15 @@ const crypto = require("crypto");
 const cheerio = require("cheerio");
 
 const STATE_FILE = path.join(__dirname, "mythic-shop-state.json");
+const MYTHIC_ONLY_CHANGES =
+  String(process.env.MYTHIC_ONLY_CHANGES || "false").toLowerCase() === "true";
+const MYTHIC_SHOW_REMOVED =
+  String(process.env.MYTHIC_SHOW_REMOVED || "false").toLowerCase() === "true";
+
+const MYTHIC_HIGHLIGHT_KEYWORDS = (process.env.MYTHIC_HIGHLIGHT_KEYWORDS || "")
+  .split(",")
+  .map((x) => x.trim())
+  .filter(Boolean);
 
 const DISCORD_WEBHOOK_URL = process.env.MYTHIC_SHOP_WEBHOOK_URL;
 const ERROR_WEBHOOK_URL = process.env.ERROR_WEBHOOK_URL;
@@ -466,7 +475,7 @@ function getMostCommonExpiresIn(items = []) {
 
 function formatItemLine(item) {
   const expires = item.expiresIn ? ` — expires in ${item.expiresIn}` : "";
-  return `• ${item.name} — ${item.price} ME${expires}`;
+  return `• ${highlightWantedText(item.name)} — ${item.price} ME${expires}`;
 }
 
 function formatItemLineWithoutRepeatedExpiry(item, sectionExpiresIn) {
@@ -475,7 +484,7 @@ function formatItemLineWithoutRepeatedExpiry(item, sectionExpiresIn) {
 
   const expires = shouldShowExpiry ? ` — expires in ${item.expiresIn}` : "";
 
-  return `• ${item.name} — ${item.price} ME${expires}`;
+  return `• ${highlightWantedText(item.name)} — ${item.price} ME${expires}`;
 }
 
 function formatGroupedItems(items = [], typeOrder) {
@@ -517,6 +526,18 @@ function formatDiscordMessage({ mythic, diff }) {
 
   const sectionOrder = ["Featured", "Bi-Weekly", "Weekly", "Daily", "Current"];
 
+  const addedItems = diff?.added || [];
+  const removedItems = diff?.removed || [];
+
+  const shouldShowAdded = addedItems.length > 0;
+  const shouldShowRemoved = MYTHIC_SHOW_REMOVED && removedItems.length > 0;
+
+  const hasVisibleChanges = shouldShowAdded || shouldShowRemoved;
+
+  if (MYTHIC_ONLY_CHANGES && !hasVisibleChanges) {
+    return "";
+  }
+
   msg += `💎 **League Mythic Shop Rotation Updated**\n`;
 
   if (mythic.rotationTitle) {
@@ -525,19 +546,48 @@ function formatDiscordMessage({ mythic, diff }) {
 
   msg += `🔗 <${MYTHIC_URL}>\n\n`;
 
-  if (diff && (diff.added.length || diff.removed.length)) {
+  if (hasVisibleChanges) {
     msg += `🧾 **Changes Since Last Check**\n\n`;
 
-    if (diff.added.length) {
+    if (shouldShowAdded) {
       msg += `🟢 **Added / Changed**\n`;
-      for (const item of diff.added) {
-        msg += `${emojiForType(item.type)} ${item.name} — ${item.price} ME`;
-        if (item.expiresIn) msg += ` — expires in ${item.expiresIn}`;
-        if (item.section) msg += ` — ${item.section}`;
+
+      for (const item of addedItems) {
+        msg += `${emojiForType(item.type)} ${highlightWantedText(item.name)} — ${item.price} ME`;
+
+        if (item.expiresIn) {
+          msg += ` — expires in ${item.expiresIn}`;
+        }
+
+        if (item.section) {
+          msg += ` — ${item.section}`;
+        }
+
         msg += `\n`;
       }
+
       msg += `\n`;
     }
+
+    if (shouldShowRemoved) {
+      msg += `🔴 **Removed / Expired**\n`;
+
+      for (const item of removedItems) {
+        msg += `${emojiForType(item.type)} ${highlightWantedText(item.name)} — ${item.price} ME`;
+
+        if (item.section) {
+          msg += ` — ${item.section}`;
+        }
+
+        msg += `\n`;
+      }
+
+      msg += `\n`;
+    }
+  }
+
+  if (MYTHIC_ONLY_CHANGES) {
+    return msg.trim();
   }
 
   if (mythic.upcomingItems && mythic.upcomingItems.length) {
@@ -656,6 +706,24 @@ async function sendErrorToDiscord(error) {
   }
 }
 
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightWantedText(text) {
+  if (!text || MYTHIC_HIGHLIGHT_KEYWORDS.length === 0) {
+    return text;
+  }
+
+  let result = text;
+
+  for (const keyword of MYTHIC_HIGHLIGHT_KEYWORDS) {
+    const regex = new RegExp(`(${escapeRegExp(keyword)})`, "gi");
+    result = result.replace(regex, "✨ __**$1**__ ✨");
+  }
+
+  return result;
+}
 // ================= MAIN =================
 
 async function main() {
@@ -763,6 +831,24 @@ async function main() {
     mythic,
     diff,
   });
+
+  if (!message) {
+    console.log(
+      "Mythic Shop hash changed, but there are no visible changes to alert.",
+    );
+
+    saveState({
+      ...state,
+      hash: newHash,
+      title: mythic.title,
+      rotationTitle: mythic.rotationTitle,
+      items: mythic.items,
+      upcomingItems: mythic.upcomingItems || [],
+      updatedAt: new Date().toISOString(),
+    });
+
+    return;
+  }
 
   console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");
   console.log(message);

@@ -510,6 +510,48 @@ function formatGroupedItems(items = [], typeOrder) {
 
 // ================= FORMAT DISCORD =================
 
+function formatChangedItemsGroupedBySection(items = [], typeOrder = []) {
+  let msg = "";
+
+  const sectionOrder = ["Featured", "Bi-Weekly", "Weekly", "Daily", "Current"];
+  const groupedBySection = groupBySection(items);
+
+  for (const section of sectionOrder) {
+    const sectionItems = groupedBySection[section];
+    if (!sectionItems || !sectionItems.length) continue;
+
+    const sectionExpiresIn = getMostCommonExpiresIn(sectionItems);
+
+    msg += `${emojiForSection(section)} **${section}**`;
+
+    if (sectionExpiresIn) {
+      msg += ` — expires in ${sectionExpiresIn}`;
+    }
+
+    msg += `\n\n`;
+
+    const groupedByType = groupByType(sectionItems);
+
+    for (const type of typeOrder) {
+      const typeItems = groupedByType[type];
+      if (!typeItems || !typeItems.length) continue;
+
+      msg += `${titleForType(type)}\n`;
+
+      for (const item of typeItems) {
+        msg += `${formatItemLineWithoutRepeatedExpiry(
+          item,
+          sectionExpiresIn,
+        )}\n`;
+      }
+
+      msg += `\n`;
+    }
+  }
+
+  return msg;
+}
+
 function formatDiscordMessage({ mythic, diff }) {
   let msg = "";
 
@@ -550,39 +592,13 @@ function formatDiscordMessage({ mythic, diff }) {
     msg += `🧾 **Changes Since Last Check**\n\n`;
 
     if (shouldShowAdded) {
-      msg += `🟢 **Added / Changed**\n`;
-
-      for (const item of addedItems) {
-        msg += `${emojiForType(item.type)} ${highlightWantedText(item.name)} — ${item.price} ME`;
-
-        if (item.expiresIn) {
-          msg += ` — expires in ${item.expiresIn}`;
-        }
-
-        if (item.section) {
-          msg += ` — ${item.section}`;
-        }
-
-        msg += `\n`;
-      }
-
-      msg += `\n`;
+      msg += `🟢 **Added / Changed**\n\n`;
+      msg += formatChangedItemsGroupedBySection(addedItems, typeOrder);
     }
 
     if (shouldShowRemoved) {
-      msg += `🔴 **Removed / Expired**\n`;
-
-      for (const item of removedItems) {
-        msg += `${emojiForType(item.type)} ${highlightWantedText(item.name)} — ${item.price} ME`;
-
-        if (item.section) {
-          msg += ` — ${item.section}`;
-        }
-
-        msg += `\n`;
-      }
-
-      msg += `\n`;
+      msg += `🔴 **Removed / Expired**\n\n`;
+      msg += formatChangedItemsGroupedBySection(removedItems, typeOrder);
     }
   }
 

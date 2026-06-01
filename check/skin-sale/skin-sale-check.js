@@ -16,6 +16,9 @@ const DISCORD_WEBHOOK_URL =
 
 const SEND_TO_DISCORD = process.env.SEND_TO_DISCORD !== "false";
 
+const SKIN_SALE_SHOW_REMOVED =
+  String(process.env.SKIN_SALE_SHOW_REMOVED || "false").toLowerCase() ===
+  "true";
 // ================= STATE =================
 
 function loadState() {
@@ -67,6 +70,21 @@ function getDiscountEmoji(discount) {
 
 function getSkinKey(skin) {
   return `${skin.name}|${skin.discount}|${skin.salePrice}|${skin.originalPrice}`;
+}
+
+function skinForHash(skin) {
+  return {
+    name: skin.name,
+    discount: skin.discount,
+    salePrice: skin.salePrice,
+    originalPrice: skin.originalPrice,
+  };
+}
+
+function buildHashPayload(sale) {
+  return {
+    skins: sale.skins.map(skinForHash),
+  };
 }
 
 function sortSkins(skins) {
@@ -303,17 +321,68 @@ function formatSkinLine(skin) {
   return `• ${skin.name} — ${skin.salePrice} RP / ${skin.originalPrice} RP`;
 }
 
-function formatDiscordMessage({ saleRange, skins }) {
+function formatDiscordMessage({
+  saleRange,
+  skins,
+  diff = null,
+  onlyChanges = false,
+}) {
   let msg = "";
 
-  msg += `🛒 League Weekly Skin Sale Updated\n`;
   msg += `🔗 ${SALE_URL}\n`;
 
-  if (saleRange) {
+  if (saleRange && !onlyChanges) {
     msg += `📅 ${saleRange}\n`;
   }
 
   msg += `\n`;
+
+  if (onlyChanges) {
+    const added = diff?.added || [];
+    const removed = diff?.removed || [];
+
+    const shouldShowRemoved = SKIN_SALE_SHOW_REMOVED && removed.length > 0;
+
+    if (!added.length && !shouldShowRemoved) {
+      return "";
+    }
+
+    msg += `🧾 **Changes Since Last Check**\n\n`;
+
+    if (added.length) {
+      msg += `🟢 **Added / Changed**\n`;
+
+      const sections = groupSkinsByExactDiscount(added);
+
+      for (const section of sections) {
+        msg += `${section.title}\n`;
+
+        for (const skin of section.skins) {
+          msg += `${formatSkinLine(skin)}\n`;
+        }
+
+        msg += `\n`;
+      }
+    }
+
+    if (shouldShowRemoved) {
+      msg += `🔴 **Removed / Expired**\n`;
+
+      const sections = groupSkinsByExactDiscount(removed);
+
+      for (const section of sections) {
+        msg += `${section.title}\n`;
+
+        for (const skin of section.skins) {
+          msg += `${formatSkinLine(skin)}\n`;
+        }
+
+        msg += `\n`;
+      }
+    }
+
+    return msg.trim();
+  }
 
   const sections = groupSkinsByExactDiscount(skins);
 
@@ -440,10 +509,7 @@ async function main() {
     );
   }
 
-  const newHash = createHash({
-    saleRange: sale.saleRange,
-    skins: sale.skins,
-  });
+  const newHash = createHash(buildHashPayload(sale));
 
   const state = loadState();
 
@@ -476,6 +542,14 @@ async function main() {
 
   if (state.hash === newHash) {
     console.log("No skin sale changes");
+
+    saveState({
+      hash: newHash,
+      saleRange: sale.saleRange,
+      skins: sale.skins,
+      updatedAt: new Date().toISOString(),
+    });
+
     return;
   }
 
@@ -484,17 +558,52 @@ async function main() {
   console.log(`Added: ${diff.added.length}`);
   console.log(`Removed: ${diff.removed.length}`);
 
+  if (!diff.added.length && (!SKIN_SALE_SHOW_REMOVED || !diff.removed.length)) {
+    console.log(
+      "Skin sale hash changed, but there are no visible changes to alert.",
+    );
+
+    saveState({
+      hash: newHash,
+      saleRange: sale.saleRange,
+      skins: sale.skins,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return;
+  }
+
   const message = formatDiscordMessage({
     saleRange: sale.saleRange,
     skins: sale.skins,
+    diff,
+    onlyChanges: true,
   });
+
+  if (!message) {
+    console.log("No visible skin sale message to send.");
+
+    saveState({
+      hash: newHash,
+      saleRange: sale.saleRange,
+      skins: sale.skins,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return;
+  }
 
   console.log("\n=== DISCORD MESSAGE PREVIEW ===\n");
   console.log(message);
   console.log("\n===============================\n");
 
+  const changedSkins = [
+    ...diff.added,
+    ...(SKIN_SALE_SHOW_REMOVED ? diff.removed : []),
+  ];
+
   if (SEND_TO_DISCORD) {
-    await sendToDiscord(message, sale.skins);
+    await sendToDiscord(message, changedSkins);
     console.log("Sent skin sale update to Discord");
   } else {
     console.log("Dry run only");

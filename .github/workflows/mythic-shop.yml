@@ -38,6 +38,9 @@ jobs:
           MYTHIC_SHOP_WEBHOOK_URL: ${{ secrets.MYTHIC_SHOP_WEBHOOK_URL }}
           ERROR_WEBHOOK_URL: ${{ secrets.ERROR_WEBHOOK_URL }}
           SEND_TO_DISCORD: "true"
+          MYTHIC_ONLY_CHANGES: "true"
+          MYTHIC_SHOW_REMOVED: "false"
+          MYTHIC_HIGHLIGHT_KEYWORDS: "Ahri,LeBlanc,Veigar"
 
       - name: Save Mythic Shop state
         if: always()

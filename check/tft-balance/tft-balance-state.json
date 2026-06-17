@@ -1,8 +1,21 @@
 {
-  "hash": "a0e3c0f11ca516ae3db33ee97c2296b2375dee75e244ba24db62529af155797f",
+  "hash": "48768f0cc8af3af6fcf57596fd25b879b74ba24f443cc97512b58bec80922d48",
   "title": "Teamfight Tactics patch 17.5",
   "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-5",
   "sections": {
+    "adjustments": [
+      "Samira Mana nerf: 0/60 ⇒ 0/65",
+      "Samira Ability CC Duration: 1.25s ⇒ 1s",
+      "Stargazer, Serpent Poison Damage: 18/35/50% ⇒ 25/45/60%",
+      "Shepherd Summon Bonus AP Per Cast: 20 ⇒ 15",
+      "Shepherd Summon Shield: 125/300/300 AP ⇒ 100/275/430 AP",
+      "Space Groove (7) Bonus: 15% ⇒ 10%",
+      "Two Tanky (Augment) Health: 500 ⇒ 450",
+      "Pengu’s Party: “No Encounter” Encounter has been properly disabled"
+    ],
+    "bugfixes": [
+      "Pengu’s Party: “No Encounter” Encounter has been properly disabled"
+    ],
     "systems": [
       "Le Blanc's Stage 3 Augments Removed",
       "Soraka Shield Blessing 450/550/650/800/800 ⇒ 500/600/700/800/900",
@@ -182,5 +195,5 @@
       "Red Buff Attack Speed: 90% ⇒ 80%"
     ]
   },
-  "updatedAt": "2026-06-10T12:23:13.993Z"
+  "updatedAt": "2026-06-17T12:52:43.132Z"
 }

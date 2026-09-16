@@ -6,10 +6,7 @@ const path = require("path");
 const STATE_FILE = path.join(__dirname, "essence-emporium-state.json");
 
 const EMPORIUM_URL =
-  "https://support-leagueoflegends.riotgames.com/hc/en-us/articles/115014872088-Essence-Emporium-FAQ";
-
-const EMPORIUM_API =
-  "https://support-leagueoflegends.riotgames.com/api/v2/help_center/en-us/articles/115014872088.json";
+  "https://support.riotgames.com/en-us/league-of-legends/rewards/essence-emporium-faq/";
 
 const DISCORD_WEBHOOK_URL = process.env.ESSENCE_EMPORIUM_WEBHOOK_URL;
 
@@ -46,39 +43,68 @@ function saveState(state) {
 // ================= FETCH =================
 
 async function fetchPage() {
-  const res = await fetch(EMPORIUM_API, {
+  const res = await fetch(EMPORIUM_URL, {
     headers: {
       "User-Agent": "Mozilla/5.0 Essence Emporium Tracker/1.0",
-      Accept: "application/json",
+      Accept: "text/html,application/xhtml+xml",
     },
+    redirect: "follow",
   });
 
   if (!res.ok) {
-    throw new Error(`Emporium Zendesk API failed: ${res.status}`);
+    throw new Error(`Emporium page failed: ${res.status}`);
   }
 
-  const data = await res.json();
+  const html = await res.text();
 
-  if (!data.article?.body) {
-    throw new Error("No article body found in Zendesk API response");
+  // Riot's new support site may include the article in the initial HTML.
+  if (parseEmporium(html).found) {
+    return html;
   }
 
-  return data.article.body;
+  // If the article is rendered client-side, use the Playwright browser that
+  // the workflow already installs and read the rendered page text.
+  console.log("Dates not present in initial HTML; retrying with Playwright");
+
+  const { chromium } = require("playwright");
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    const page = await browser.newPage({
+      userAgent: "Mozilla/5.0 Essence Emporium Tracker/1.0",
+    });
+
+    await page.goto(res.url || EMPORIUM_URL, {
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
+    });
+
+    await page.waitForFunction(
+      () => /Start\s*[-:]/i.test(document.body?.innerText || ""),
+      { timeout: 15000 },
+    );
+
+    return await page.locator("body").innerText();
+  } finally {
+    await browser.close();
+  }
 }
 
 // ================= PARSE =================
 
 function normalize(text = "") {
-  return text.replace(/\s+/g, " ").trim();
+  return text
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;|&#38;/gi, "&")
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function parseEmporium(html) {
-  const text = normalize(
-    html
-      .replace(/<[^>]*>/g, " ")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&"),
-  );
+  const text = normalize(html);
 
   const match = text.match(
     /Start\s*[-:]\s*([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}).*?End\s*[-:]\s*([A-Za-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,

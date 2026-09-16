@@ -1,6 +1,8 @@
 name: League Newest Skins Updates
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "0 9 */3 * *"
   workflow_dispatch:

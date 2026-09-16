@@ -1,8 +1,6 @@
 name: Essence Emporium
 
 on:
-  push:
-    branches: [main]
   schedule:
     - cron: "0 9 1 */2 *"
   workflow_dispatch:

@@ -1,25 +1,20 @@
 {
-  "hash": "4f576dd886906d3600b4e1ff2db9b475fdb13a63bab63c1da2a5fcefff62ea62",
+  "hash": "d8533e9db9f78e4ac661a9067b9049895a27a528e85e1a985e457385a36142af",
   "title": "Teamfight Tactics patch 18.5",
   "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-18-5",
   "sections": {
-    "traits": [
-      "Blackthorn6 Piece Enhanced Bonus: 60% ⇒ 50%Base AP Sacrifice: 12% Damage Amp + 2 Mana Regen ⇒ 10% Damage Amp + 2 Mana Regen",
-      "6 Piece Enhanced Bonus: 60% ⇒ 50%",
-      "Base AP Sacrifice: 12% Damage Amp + 2 Mana Regen ⇒ 10% Damage Amp + 2 Mana Regen",
-      "Elderwood (9)9-Piece Summon Bonus Health: 140% ⇒ 125%",
-      "9-Piece Summon Bonus Health: 140% ⇒ 125%",
-      "Fae (2/4)Heal: 2.5/4% ⇒ 3/5%4th Pixie Threshold: 30000 ⇒ 25,0005th Pixie Threshold: 70000 ⇒ 60,0006th Pixie Threshold: 110000 ⇒ 100,000",
-      "Heal: 2.5/4% ⇒ 3/5%",
-      "4th Pixie Threshold: 30000 ⇒ 25,000",
-      "5th Pixie Threshold: 70000 ⇒ 60,000",
-      "6th Pixie Threshold: 110000 ⇒ 100,000",
-      "Flora Fatalis Max Health Healing: 8% ⇒ 7%",
-      "Max Health Healing: 8% ⇒ 7%",
-      "Rapidfire AS Per Attack: 3/5/8/12% ⇒ 3/5/7/10%",
-      "AS Per Attack: 3/5/8/12% ⇒ 3/5/7/10%",
-      "Riftbeast (7)AD/AP: 6% ⇒ 5%",
-      "AD/AP: 6% ⇒ 5%",
+    "champions": [
+      "Brambleback: Healing On-Hit: 5% ⇒ 4%",
+      "Die Roll: Upgrade Cost: 3 ⇒ 2",
+      "Downpour: Upgrade Cost: 3 ⇒ 2",
+      "Hero's Entrance: Upgraded Cost: 4 ⇒ 2",
+      "Hireling: Base Cost: 2 ⇒ 5",
+      "Knick-Knack Bag: Upgrade Cost: 2 ⇒ 1",
+      "Moonlight Ritual: Base Cost: 2 ⇒ 3",
+      "Elderwood Emblem’s stats have been properly corrected after having their nerf from 18.4 temporarily reverted.",
+      "Luxury Subscription correctly grants 2-star 1-cost champions.",
+      "U.R.F. and Spreading Roots are now properly excluded",
+      "Abandon Ship’s Blossom Upgrade properly costs 2 gold.",
       "Caitlyn Empowered Auto Damage: 190/285/470 AD ⇒ 200/300/490 AD",
       "Empowered Auto Damage: 190/285/470 AD ⇒ 200/300/490 AD",
       "Azir Ability Damage: 46/69/110 AP ⇒ 43/65/105 AP",
@@ -154,7 +149,29 @@
       "Added to Stage 3",
       "Grove Armor Added to Stage 3"
     ],
-    "champions": [
+    "bugfixes": [
+      "Elderwood Emblem’s stats have been properly corrected after having their nerf from 18.4 temporarily reverted.",
+      "Luxury Subscription correctly grants 2-star 1-cost champions.",
+      "U.R.F. and Spreading Roots are now properly excluded",
+      "Abandon Ship’s Blossom Upgrade properly costs 2 gold."
+    ],
+    "traits": [
+      "Blackthorn6 Piece Enhanced Bonus: 60% ⇒ 50%Base AP Sacrifice: 12% Damage Amp + 2 Mana Regen ⇒ 10% Damage Amp + 2 Mana Regen",
+      "6 Piece Enhanced Bonus: 60% ⇒ 50%",
+      "Base AP Sacrifice: 12% Damage Amp + 2 Mana Regen ⇒ 10% Damage Amp + 2 Mana Regen",
+      "Elderwood (9)9-Piece Summon Bonus Health: 140% ⇒ 125%",
+      "9-Piece Summon Bonus Health: 140% ⇒ 125%",
+      "Fae (2/4)Heal: 2.5/4% ⇒ 3/5%4th Pixie Threshold: 30000 ⇒ 25,0005th Pixie Threshold: 70000 ⇒ 60,0006th Pixie Threshold: 110000 ⇒ 100,000",
+      "Heal: 2.5/4% ⇒ 3/5%",
+      "4th Pixie Threshold: 30000 ⇒ 25,000",
+      "5th Pixie Threshold: 70000 ⇒ 60,000",
+      "6th Pixie Threshold: 110000 ⇒ 100,000",
+      "Flora Fatalis Max Health Healing: 8% ⇒ 7%",
+      "Max Health Healing: 8% ⇒ 7%",
+      "Rapidfire AS Per Attack: 3/5/8/12% ⇒ 3/5/7/10%",
+      "AS Per Attack: 3/5/8/12% ⇒ 3/5/7/10%",
+      "Riftbeast (7)AD/AP: 6% ⇒ 5%",
+      "AD/AP: 6% ⇒ 5%",
       "Caitlyn Empowered Auto Damage: 190/285/470 AD ⇒ 200/300/490 AD",
       "Empowered Auto Damage: 190/285/470 AD ⇒ 200/300/490 AD",
       "Azir Ability Damage: 46/69/110 AP ⇒ 43/65/105 AP",
@@ -467,5 +484,5 @@
       "Grove Armor Added to Stage 3"
     ]
   },
-  "updatedAt": "2026-10-21T14:22:32.067Z"
+  "updatedAt": "2026-10-28T15:46:23.970Z"
 }
